@@ -140,4 +140,30 @@ export async function sendMessage(chatId, text) {
   return res.json();
 }
 
+// Enviar imagen en chat individual
+export async function sendImage(chatId, file) {
+  const formData = new FormData();
+  formData.append('chat_id', chatId);
+  formData.append('image', file);
+  const res = await fetchWithAuth(`${API_URL}/api/chat/message/image`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo enviar la imagen');
+  return res.json();
+}
+
+// Enviar audio en chat individual
+export async function sendAudio(chatId, file) {
+  const formData = new FormData();
+  formData.append('chat_id', chatId);
+  formData.append('audio', file);
+  const res = await fetchWithAuth(`${API_URL}/api/chat/message/audio`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo enviar el audio');
+  return res.json();
+}
+
 // Puedes agregar aquí funciones para audio, imágenes, etc.

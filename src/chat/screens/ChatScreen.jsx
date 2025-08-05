@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
-import { getChatMessages, sendMessage } from "../api";
+import { getChatMessages, sendMessage, sendImage, sendAudio } from "../api";
 import { getSocket } from "../socket";
 
 // UI de chat profesional y minimalista
@@ -47,12 +47,18 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     });
     socketRef.current.emit("join", chat._id);
     socketRef.current.on("message", msg => {
-      setMessages(prev => prev.some(m => m.id === msg._id) ? prev : [...prev, {
-        id: msg._id,
-        from: (msg.user && (msg.user._id || msg.user.id)) ? (msg.user._id || msg.user.id) : (msg.sender || msg.from || msg.userId),
-        text: msg.message,
-        time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-      }]);
+      setMessages(prev => prev.some(m => m.id === msg._id)
+        ? prev
+        : [
+          ...prev,
+          {
+            id: msg._id,
+            from: (msg.user && (msg.user._id || msg.user.id)) ? (msg.user._id || msg.user.id) : (msg.sender || msg.from || msg.userId),
+            text: msg.message,
+            time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+          }
+        ]
+      );
     });
     // Recibir TIC en tiempo real
     socketRef.current.on("tic", data => {
@@ -112,18 +118,30 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setLoading(false);
   };
 
-  // Enviar imagen (a implementar en backend)
-  const handleSendImage = (file) => {
-    // TODO: implementar subida real
-    const url = URL.createObjectURL(file);
-    setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, image: url, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
+  // Enviar imagen
+  const handleSendImage = async (file) => {
+    if (!chat?._id) return;
+    setLoading(true);
+    try {
+      await sendImage(chat._id, file); // El mensaje aparecerá cuando llegue por WebSocket
+    } catch (e) {
+      console.error('Error al enviar imagen:', e);
+      // Aquí puedes mostrar feedback visual de error
+    }
+    setLoading(false);
   };
 
-  // Enviar audio (a implementar en backend)
-  const handleSendAudio = (audioBlob) => {
-    // TODO: implementar subida real
-    const url = URL.createObjectURL(audioBlob);
-    setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, audio: url, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
+  // Enviar audio
+  const handleSendAudio = async (audioBlob) => {
+    if (!chat?._id) return;
+    setLoading(true);
+    try {
+      await sendAudio(chat._id, audioBlob); // El mensaje aparecerá cuando llegue por WebSocket
+    } catch (e) {
+      console.error('Error al enviar audio:', e);
+      // Aquí puedes mostrar feedback visual de error
+    }
+    setLoading(false);
   };
 
   // Enviar TIC (zumbido, solo UI por ahora)
@@ -183,9 +201,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       {/* Mensajes */}
       <div id="chat-area" style={{ flex: 1, overflowY: 'auto', padding: '28px 0 18px 0', background: 'linear-gradient(120deg,#fafdff 60%,#e3eaf2 100%)', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow .2s' }}>
         {messages.map((msg, idx) => {
-          // Lógica robusta para identificar el emisor
           const myId = user && (user._id || user.id || user.uid || user.idUser) ? String(user._id || user.id || user.uid || user.idUser) : '';
-          // Prioridad: msg.user._id (backend), luego from, sender, userId
           const msgFrom = msg && (
             (msg.user && (msg.user._id || msg.user.id)) ? String(msg.user._id || msg.user.id) :
               msg.from ? String(msg.from) :
@@ -194,61 +210,77 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                     ''
           );
           const isMine = myId && msgFrom && myId === msgFrom;
-          // Genero una key única y robusta
           const key = msg.id ? `${msg.id}-${isMine ? 'mine' : 'other'}-${idx}` : `${idx}-${isMine ? 'mine' : 'other'}`;
+          // Colores Magic2k
+          const bubbleColor = isMine ? 'var(--primary)' : '#fff';
+          const textColor = isMine ? '#fff' : '#23263a';
+          const borderColor = isMine ? 'var(--primary)' : '#e3eaf2';
+          const tailColor = isMine ? 'var(--primary)' : '#fff';
+          const align = isMine ? 'flex-end' : 'flex-start';
+          const tailPosition = isMine ? { right: -10, borderLeftColor: tailColor } : { left: -10, borderRightColor: tailColor };
           return (
-            <div key={key} style={{
-              display: 'flex',
-              justifyContent: isMine ? 'flex-end' : 'flex-start',
-              padding: '0 22px',
-            }}>
-              {/* Mensaje de texto */}
+            <div key={key} style={{ display: 'flex', justifyContent: align, padding: '0 22px', position: 'relative' }}>
               {msg.text && (
                 <div style={{
-                  background: isMine ? 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)' : '#e3eaf2',
-                  color: isMine ? '#fff' : '#23263a',
+                  background: bubbleColor,
+                  color: textColor,
                   borderRadius: 18,
                   borderBottomRightRadius: isMine ? 4 : 18,
                   borderBottomLeftRadius: isMine ? 18 : 4,
-                  padding: '10px 16px',
+                  padding: '12px 18px',
                   fontSize: 16,
                   fontWeight: 500,
-                  boxShadow: isMine ? '0 2px 8px #3a8dde33' : '0 2px 8px #3a8dde11',
+                  boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11',
                   maxWidth: 340,
                   minWidth: 36,
                   wordBreak: 'break-word',
                   position: 'relative',
-                  marginBottom: 2,
+                  marginBottom: 8,
                   marginLeft: isMine ? 24 : 0,
                   marginRight: isMine ? 0 : 24,
+                  alignSelf: align,
+                  border: `2px solid ${borderColor}`,
+                  opacity: 0.98,
                   transition: 'background .2s',
-                  alignSelf: isMine ? 'flex-end' : 'flex-start',
-                  border: isMine ? '2px solid #3a8dde' : '2px solid #e3eaf2',
-                  opacity: 0.97,
                 }}>
                   {msg.text}
                   <span style={{ fontSize: 11, color: isMine ? '#eaf2ffb0' : '#7a8ca3', marginLeft: 8, marginRight: -4, position: 'absolute', bottom: 4, right: 10 }}>{msg.time}</span>
+                  {/* Pico de la burbuja */}
+                  <span style={{
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    ...(isMine ? { right: -10 } : { left: -10 }),
+                    width: 0,
+                    height: 0,
+                    borderTop: '10px solid transparent',
+                    borderBottom: '10px solid transparent',
+                    borderLeft: isMine ? '10px solid var(--primary)' : 'none',
+                    borderRight: !isMine ? '10px solid #fff' : 'none',
+                    zIndex: 1,
+                    display: 'inline-block',
+                  }} />
                 </div>
               )}
               {/* Imagen */}
               {msg.image && (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #3a8dde33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: isMine ? 'flex-end' : 'flex-start' }}>
+                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8 }}>
                   <img src={msg.image} alt="img" style={{ maxWidth: 200, maxHeight: 180, borderRadius: 12, objectFit: 'cover', display: 'block' }} />
                   <span style={{ fontSize: 11, color: '#7a8ca3', marginLeft: 8 }}>{msg.time}</span>
                 </div>
               )}
               {/* Audio */}
               {msg.audio && (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #3a8dde33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: isMine ? 'flex-end' : 'flex-start' }}>
+                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8 }}>
                   <audio src={msg.audio} controls style={{ width: 160 }} />
                   <span style={{ fontSize: 11, color: '#7a8ca3' }}>{msg.time}</span>
                 </div>
               )}
               {/* TIC (zumbido) */}
               {msg.tic && (
-                <div style={{ background: '#f7b731', color: '#fff', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #f7b73133', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: isMine ? 'flex-end' : 'flex-start', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
+                <div style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8 }}>
                   <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
-                  <span style={{ fontSize: 11, color: '#fff', marginLeft: 8 }}>{msg.time}</span>
+                  <span style={{ fontSize: 11, color: '#23263a', marginLeft: 8 }}>{msg.time}</span>
                 </div>
               )}
             </div>

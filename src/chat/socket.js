@@ -5,7 +5,7 @@ export const SOCKET_URL = "https://magic2k.com";
 
 export function getSocket(token) {
   return io(SOCKET_URL, {
-    path: "/API/socket.io",
+    path: "/socket.io",
     transports: ["websocket"],
     auth: { token },
   });

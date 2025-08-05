@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getUsers, createChat, getChats } from "../api";
+
+// Utilidad simple de debounce
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
 
 // UI para lista de chats y creación de nuevo chat
 export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile }) {
@@ -9,47 +18,51 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   const [loading, setLoading] = useState(false);
   const [chats, setChats] = useState([]);
   const [loadingChats, setLoadingChats] = useState(true);
-
-  // Cargar chats reales al montar
   const [apiError, setApiError] = useState("");
+  const [chatError, setChatError] = useState("");
+
   // Función para cargar chats (permite reintentar)
-  const loadChats = () => {
+  const loadChats = useCallback(() => {
     setLoadingChats(true);
     setApiError("");
     getChats().then(data => {
       setChats(Array.isArray(data) ? data : []);
-    }).catch((err)=>{
+    }).catch((err) => {
       setChats([]);
       setApiError("No se pudieron cargar los chats. Intenta reintentar o revisa tu conexión.");
-    }).finally(()=>setLoadingChats(false));
-  };
+    }).finally(() => setLoadingChats(false));
+  }, []);
+
   useEffect(() => {
     loadChats();
     // eslint-disable-next-line
-  }, []);
+  }, [loadChats]);
 
-  // Buscar usuarios reales desde el backend
-  const handleSearch = async (e) => {
-    const value = e.target.value;
-    setSearch(value);
+  // Debounced search handler
+  const debouncedSearch = useMemo(() => debounce(async (value) => {
     if (value.length < 2) {
       setResults([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
     try {
       const users = await getUsers(value);
-      // Filtrar en frontend por seguridad: nunca mostrar al usuario autenticado
       const filtered = (Array.isArray(users) ? users : []).filter(u => u._id !== user._id && u.email !== user.email);
       setResults(filtered);
     } catch (err) {
       setResults([]);
     }
     setLoading(false);
+  }, 400), [user]);
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    debouncedSearch(value);
   };
 
   // Crear chat real
-  const [chatError, setChatError] = useState("");
   const handleCreateChat = async (userToChat) => {
     setShowModal(false);
     setSearch("");
@@ -57,7 +70,6 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
     setChatError("");
     try {
       const chat = await createChat(user._id, userToChat._id);
-      // Si el backend responde solo con msg, buscar el chat existente
       if (chat && chat.msg && !chat._id) {
         const existing = chats.find(c => {
           const ids = [c.participant_one?._id || c.participant_one, c.participant_two?._id || c.participant_two];
@@ -75,7 +87,6 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         }
         return;
       }
-      // Normalizar el chat recibido del backend
       const normalizedChat = {
         ...chat,
         _id: chat._id || chat.id,
@@ -87,74 +98,78 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
     }
   };
 
+  // Memoizar la lista de chats renderizada
+  const chatList = useMemo(() => (
+    chats.map(chat => {
+      let participants = chat.participants;
+      if (!participants && chat.participant_one && chat.participant_two) {
+        participants = [chat.participant_one, chat.participant_two];
+      }
+      const other = (participants || []).find(u => u && u._id !== user._id && u.email !== user.email) || chat.otherUser;
+      const normalizedChat = {
+        ...chat,
+        participants: participants,
+        _id: chat._id || chat.id,
+        otherUser: other
+      };
+      return (
+        <button key={normalizedChat._id} onClick={() => {
+          onSelectChat(normalizedChat);
+        }} style={{ width: '100%', background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 12, padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a', boxShadow: '0 1px 8px #3a8dde08' }}>
+          <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, color: '#3a8dde', fontWeight: 700 }}>
+            {(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}
+          </span>
+          <span style={{ flex: 1, textAlign: 'left' }}>
+            {other?.firstName ? (
+              <>
+                {other.firstName} {other.lastName || ''}
+                <span style={{ color: '#7a8ca3', fontWeight: 400, fontSize: 13, marginLeft: 6 }}>{other.email}</span>
+              </>
+            ) : (
+              other?.email || 'Usuario'
+            )}
+          </span>
+        </button>
+      );
+    })
+  ), [chats, user, onSelectChat]);
+
   return (
-    <div style={{position:'relative',height:'100vh',display:'flex',flexDirection:'column',background:'#fafdff'}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 18px 10px 18px',borderBottom:'1.5px solid #e3eaf2',background:'#fafdff',zIndex:2}}>
-        <div style={{display:'flex',alignItems:'center',gap:16}}>
-          <h2 style={{fontWeight:800,fontSize:22,color:'#7a8ca3',margin:0}}>Chats</h2>
-          <span style={{fontSize:15,color:'#3a8dde',fontWeight:700,background:'#e3eaf2',borderRadius:8,padding:'4px 12px'}}>
+    <div style={{ position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fafdff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px 10px 18px', borderBottom: '1.5px solid #e3eaf2', background: '#fafdff', zIndex: 2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <h2 style={{ fontWeight: 800, fontSize: 22, color: '#7a8ca3', margin: 0 }}>Chats</h2>
+          <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, background: '#e3eaf2', borderRadius: 8, padding: '4px 12px' }}>
             {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || 'Usuario'}
           </span>
         </div>
-        <button onClick={()=>setShowModal(true)} style={{background:'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)',color:'#fff',border:'none',borderRadius:12,padding:'8px 18px',fontWeight:700,fontSize:15,boxShadow:'0 1px 8px #3a8dde22',cursor:'pointer',transition:'background .2s'}}>+ Nuevo chat</button>
+        <button onClick={() => setShowModal(true)} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 12, padding: '8px 18px', fontWeight: 700, fontSize: 15, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', transition: 'background .2s' }}>+ Nuevo chat</button>
       </div>
-      <div style={{flex:1,overflowY:'auto',padding:'0 0 24px 0',margin:0,display:'flex',flexDirection:'column',background:'#fafdff',zIndex:1}}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 0 24px 0', margin: 0, display: 'flex', flexDirection: 'column', background: '#fafdff', zIndex: 1 }}>
         {loadingChats ? (
-          <div style={{color:'#7a8ca3',fontWeight:500,padding:'48px 0',textAlign:'center',fontSize:18,flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>Cargando chats...</div>
+          <div style={{ color: '#7a8ca3', fontWeight: 500, padding: '48px 0', textAlign: 'center', fontSize: 18, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Cargando chats...</div>
         ) : apiError ? (
-          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',background:'#fafdff'}}>
-            <div style={{color:'#e74c3c',fontWeight:600,padding:'24px 0',textAlign:'center',fontSize:18,marginBottom:18}}>{apiError}</div>
-            <button onClick={loadChats} style={{background:'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)',color:'#fff',border:'none',borderRadius:10,padding:'10px 24px',fontWeight:700,fontSize:16,boxShadow:'0 1px 8px #3a8dde22',cursor:'pointer',marginTop:10}}>Reintentar</button>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafdff' }}>
+            <div style={{ color: '#e74c3c', fontWeight: 600, padding: '24px 0', textAlign: 'center', fontSize: 18, marginBottom: 18 }}>{apiError}</div>
+            <button onClick={loadChats} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', marginTop: 10 }}>Reintentar</button>
           </div>
         ) : chats.length === 0 ? (
-          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',background:'#fafdff'}}>
-            <div style={{textAlign:'center',marginTop:32}}>
-              <div style={{fontSize:32,fontWeight:800,color:'#3a8dde',marginBottom:16}}>M2k</div>
-              <div style={{fontSize:26,fontWeight:700,marginBottom:12}}>¡Bienvenido a <span style={{color:'#3a8dde'}}>Magic2k</span>!</div>
-              <div style={{fontSize:17,color:'#7a8ca3',marginBottom:10}}>Selecciona un chat o grupo para comenzar a conversar.<br/>Disfruta una experiencia nostálgica, moderna y única.</div>
-              <div style={{fontWeight:700,color:'#3a8dde',fontSize:15,marginTop:8}}>Simple. Privado. Mágico.</div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafdff' }}>
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <div style={{ fontSize: 32, fontWeight: 800, color: '#3a8dde', marginBottom: 16 }}>M2k</div>
+              <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 12 }}>¡Bienvenido a <span style={{ color: '#3a8dde' }}>Magic2k</span>!</div>
+              <div style={{ fontSize: 17, color: '#7a8ca3', marginBottom: 10 }}>Selecciona un chat o grupo para comenzar a conversar.<br />Disfruta una experiencia nostálgica, moderna y única.</div>
+              <div style={{ fontWeight: 700, color: '#3a8dde', fontSize: 15, marginTop: 8 }}>Simple. Privado. Mágico.</div>
             </div>
             {chatError && (
-              <div style={{color:'#e74c3c',fontWeight:600,padding:'16px 0',textAlign:'center',fontSize:16}}>{chatError}</div>
+              <div style={{ color: '#e74c3c', fontWeight: 600, padding: '16px 0', textAlign: 'center', fontSize: 16 }}>{chatError}</div>
             )}
           </div>
         ) : (
-          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',padding:'32px 0 0 0',background:'#fafdff'}}>
-            <div style={{fontSize:22,fontWeight:700,color:'#3a8dde',marginBottom:18}}>Tus chats</div>
-            <div style={{width:'100%',maxWidth:480}}>
-              {chats.map(chat => {
-                // Normalizar participantes para cualquier formato del backend
-                let participants = chat.participants;
-                if (!participants && chat.participant_one && chat.participant_two) {
-                  participants = [chat.participant_one, chat.participant_two];
-                }
-                const other = (participants || []).find(u => u && u._id !== user._id && u.email !== user.email) || chat.otherUser;
-                const normalizedChat = {
-                  ...chat,
-                  participants: participants,
-                  _id: chat._id || chat.id,
-                  otherUser: other
-                };
-                return (
-                  <button key={normalizedChat._id} onClick={() => {
-                    onSelectChat(normalizedChat);
-                  }} style={{width:'100%',background:'#fff',border:'1.5px solid #e3eaf2',borderRadius:12,padding:'14px 18px',marginBottom:14,display:'flex',alignItems:'center',gap:14,cursor:'pointer',transition:'background .2s',fontWeight:600,color:'#23263a',boxShadow:'0 1px 8px #3a8dde08'}}>
-                    <span style={{background:'#e3eaf2',borderRadius:'50%',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,color:'#3a8dde',fontWeight:700}}>
-                      {(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}
-                    </span>
-                    <span style={{flex:1,textAlign:'left'}}>
-                      {other?.firstName ? (
-                        <>
-                          {other.firstName} {other.lastName || ''}
-                          <span style={{color:'#7a8ca3',fontWeight:400,fontSize:13,marginLeft:6}}>{other.email}</span>
-                        </>
-                      ) : (
-                        other?.email || 'Usuario'
-                      )}
-                    </span>
-                  </button>
-                );
-              })}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '32px 0 0 0', background: '#fafdff' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#3a8dde', marginBottom: 18 }}>Tus chats</div>
+            <div style={{ width: '100%', maxWidth: 480 }}>
+              {chatList}
             </div>
           </div>
         )}
@@ -163,31 +178,31 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
 
       {/* Modal para crear chat */}
       {showModal && (
-        <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',zIndex:2000,background:'rgba(20,22,34,0.45)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{background:'#fff',borderRadius:18,boxShadow:'0 8px 32px #3a8dde22',padding:'32px 24px',minWidth:320,maxWidth:360,display:'flex',flexDirection:'column',alignItems:'center',position:'relative'}}>
-            <button onClick={()=>setShowModal(false)} style={{position:'absolute',top:12,right:16,background:'none',border:'none',fontSize:26,color:'#3a8dde',cursor:'pointer'}}>×</button>
-            <h3 style={{fontWeight:800,fontSize:20,marginBottom:18,color:'#3a8dde'}}>Nuevo chat</h3>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 2000, background: 'rgba(20,22,34,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 8px 32px #3a8dde22', padding: '32px 24px', minWidth: 320, maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 26, color: '#3a8dde', cursor: 'pointer' }}>×</button>
+            <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 18, color: '#3a8dde' }}>Nuevo chat</h3>
             <input
               type="text"
               value={search}
               onChange={handleSearch}
               placeholder="Buscar usuario por nombre o email..."
-              style={{width:'100%',padding:'10px 12px',borderRadius:10,border:'1.5px solid #e3eaf2',fontSize:15,marginBottom:14,outline:'none'}}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e3eaf2', fontSize: 15, marginBottom: 14, outline: 'none' }}
               autoFocus
             />
-            {loading && <div style={{color:'#7a8ca3',fontWeight:500}}>Buscando...</div>}
-            {!loading && results.length === 0 && search.length > 1 && <div style={{color:'#7a8ca3',fontWeight:500}}>Sin resultados</div>}
-            <div style={{width:'100%',marginTop:6}}>
+            {loading && <div style={{ color: '#7a8ca3', fontWeight: 500 }}>Buscando...</div>}
+            {!loading && results.length === 0 && search.length > 1 && <div style={{ color: '#7a8ca3', fontWeight: 500 }}>Sin resultados</div>}
+            <div style={{ width: '100%', marginTop: 6 }}>
               {results.map(u => (
-                <button key={u._id} onClick={()=>handleCreateChat(u)} style={{width:'100%',background:'#fafdff',border:'1.5px solid #e3eaf2',borderRadius:10,padding:'10px 12px',marginBottom:8,display:'flex',alignItems:'center',gap:10,cursor:'pointer',transition:'background .2s',fontWeight:600,color:'#23263a'}}>
-                  <span style={{background:'#e3eaf2',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,color:'#3a8dde',fontWeight:700}}>
+                <button key={u._id} onClick={() => handleCreateChat(u)} style={{ width: '100%', background: '#fafdff', border: '1.5px solid #e3eaf2', borderRadius: 10, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a' }}>
+                  <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: '#3a8dde', fontWeight: 700 }}>
                     {(u.firstName && u.firstName[0]) || (u.email && u.email[0]) || '?'}
                   </span>
-                  <span style={{flex:1,textAlign:'left'}}>
+                  <span style={{ flex: 1, textAlign: 'left' }}>
                     {u.firstName ? (
                       <>
                         {u.firstName} {u.lastName || ''}
-                        <span style={{color:'#7a8ca3',fontWeight:400,fontSize:13,marginLeft:6}}>{u.email}</span>
+                        <span style={{ color: '#7a8ca3', fontWeight: 400, fontSize: 13, marginLeft: 6 }}>{u.email}</span>
                       </>
                     ) : (
                       u.email

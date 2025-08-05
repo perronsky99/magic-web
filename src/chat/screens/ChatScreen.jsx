@@ -25,7 +25,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
         setMessages(msgs.map(msg => ({
           id: msg._id,
-          from: msg.sender,
+          from: (msg.user && (msg.user._id || msg.user.id)) ? (msg.user._id || msg.user.id) : (msg.sender || msg.from || msg.userId),
           text: msg.message,
           time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
         })));
@@ -49,7 +49,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     socketRef.current.on("message", msg => {
       setMessages(prev => prev.some(m => m.id === msg._id) ? prev : [...prev, {
         id: msg._id,
-        from: msg.sender,
+        from: (msg.user && (msg.user._id || msg.user.id)) ? (msg.user._id || msg.user.id) : (msg.sender || msg.from || msg.userId),
         text: msg.message,
         time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
       }]);
@@ -185,7 +185,14 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         {messages.map((msg, idx) => {
           // Lógica robusta para identificar el emisor
           const myId = user && (user._id || user.id || user.uid || user.idUser) ? String(user._id || user.id || user.uid || user.idUser) : '';
-          const msgFrom = msg && (msg.from || msg.sender || msg.userId) ? String(msg.from || msg.sender || msg.userId) : '';
+          // Prioridad: msg.user._id (backend), luego from, sender, userId
+          const msgFrom = msg && (
+            (msg.user && (msg.user._id || msg.user.id)) ? String(msg.user._id || msg.user.id) :
+              msg.from ? String(msg.from) :
+                msg.sender ? String(msg.sender) :
+                  msg.userId ? String(msg.userId) :
+                    ''
+          );
           const isMine = myId && msgFrom && myId === msgFrom;
           // Genero una key única y robusta
           const key = msg.id ? `${msg.id}-${isMine ? 'mine' : 'other'}-${idx}` : `${idx}-${isMine ? 'mine' : 'other'}`;

@@ -9,6 +9,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [socketError, setSocketError] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const ticAudioRef = useRef();
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
@@ -17,6 +18,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   useEffect(() => {
     if (!chat?._id) return;
     setLoading(true);
+    setLoadError("");
     getChatMessages(chat._id)
       .then(data => {
         setMessages(data.map(msg => ({
@@ -26,7 +28,10 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
         })));
       })
-      .catch(() => setMessages([]))
+      .catch((err) => {
+        setMessages([]);
+        setLoadError("No se pudieron cargar los mensajes de este chat. Puede que el chat haya sido eliminado o haya un error en el servidor.");
+      })
       .finally(() => setLoading(false));
   }, [chat?._id]);
 
@@ -104,6 +109,15 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       setTimeout(() => chatArea.classList.remove('tic-vibrate'), 600);
     }
   };
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#fff' }}>
+        <div style={{ color: '#e74c3c', fontWeight: 700, fontSize: 18, marginBottom: 18 }}>{loadError}</div>
+        <button onClick={onBack} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer' }}>Volver a la lista de chats</button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', minHeight: 0 }}>

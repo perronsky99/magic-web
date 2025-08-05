@@ -60,6 +60,28 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     };
   }, [chat?._id, token]);
 
+  // Polling para actualizar mensajes si no hay WebSocket
+  useEffect(() => {
+    if (!chat?._id) return;
+    let interval;
+    if (socketError) {
+      interval = setInterval(() => {
+        getChatMessages(chat._id)
+          .then(data => {
+            let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
+            setMessages(msgs.map(msg => ({
+              id: msg._id,
+              from: msg.sender,
+              text: msg.message,
+              time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            })));
+          })
+          .catch(() => { });
+      }, 3000);
+    }
+    return () => interval && clearInterval(interval);
+  }, [chat?._id, socketError]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -228,9 +250,10 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         onSendTic={handleSendTic}
         loading={loading}
       />
-      {socketError && (
+      {/* Solo mostrar advertencia si hay error real de red, no solo por falta de WebSocket */}
+      {socketError && !loading && (
         <div style={{ color: '#e74c3c', background: '#fff3f3', padding: '10px 18px', borderRadius: 10, margin: '12px 18px 0 18px', fontWeight: 600, fontSize: 15 }}>
-          No se pudo conectar al servidor en tiempo real. Los mensajes se enviarán pero no llegarán en tiempo real.
+          No se pudo conectar al servidor en tiempo real. Los mensajes se actualizarán automáticamente cada pocos segundos.
         </div>
       )}
     </div>

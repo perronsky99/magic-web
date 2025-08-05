@@ -74,54 +74,6 @@ export default function ChatApp({ token, user, onLogout }) {
             onSelectGroup={group => { setSelectedGroup(group); setSection("groupchat"); }}
             onProfile={() => setSection("profile")} />
         )}
-        {/* Pantalla de bienvenida solo si no hay chats y no hay chat seleccionado */}
-        {section === "chats" && !selectedChat && (
-          <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            background: 'radial-gradient(ellipse at 60% 40%, #e3eaf2 60%, #fafdff 100%)',
-            zIndex: 1,
-            pointerEvents: 'none',
-            animation: 'fadeInWelcome 0.7s',
-            minWidth: 0,
-            width: '100%',
-            maxWidth: 600,
-            margin: '0 auto',
-          }}>
-            {/* Logo SVG inline, único y visible en cualquier fondo */}
-            <span style={{ marginBottom: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="74" height="74" viewBox="0 0 74 74" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 32px #3a8dde55)', animation: 'glowLogo 2.2s infinite alternate' }}>
-                <circle cx="37" cy="37" r="36" fill="#fff" stroke="#3a8dde" strokeWidth="2.5" />
-                <text x="50%" y="54%" textAnchor="middle" fill="#3a8dde" fontSize="28" fontWeight="bold" fontFamily="'Segoe UI',sans-serif" dy=".3em">M2k</text>
-              </svg>
-            </span>
-            <h2 style={{
-              color: '#23263a', fontWeight: 900, letterSpacing: 0.5, marginBottom: 10, fontSize: 32,
-              textShadow: '0 2px 16px #3a8dde11, 0 1px 0 #fff',
-              fontFamily: "'Segoe UI', 'Montserrat', 'Inter', sans-serif"
-            }}>
-              ¡Bienvenido a <span style={{ color: '#3a8dde' }}>Magic2k</span>!
-            </h2>
-            <div style={{
-              color: '#5a6a8c', fontSize: 19, fontWeight: 500, maxWidth: 420, textAlign: 'center', lineHeight: 1.5,
-              background: 'rgba(255,255,255,0.7)', borderRadius: 14, padding: '18px 22px', boxShadow: '0 2px 16px #3a8dde11', marginBottom: 8
-            }}>
-              Selecciona un chat o grupo para comenzar a conversar.<br />Disfruta una experiencia nostálgica, moderna y única.<br />
-              <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, letterSpacing: 1, display: 'block', marginTop: 10, opacity: 0.85 }}>Simple. Privado. Mágico.</span>
-            </div>
-            {/* Animaciones CSS en línea */}
-            <style>{`
-              @keyframes fadeInWelcome {
-                from { opacity: 0; transform: translateY(24px); }
-                to { opacity: 1; transform: none; }
-              }
-              @keyframes glowLogo {
-                from { filter: drop-shadow(0 2px 32px #3a8dde33); }
-                to { filter: drop-shadow(0 2px 64px #3a8ddecc); }
-              }
-            `}</style>
-          </div>
-        )}
         {/* Pantalla de grupos */}
         {section === "groups" && (
           <>

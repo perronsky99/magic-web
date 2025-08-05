@@ -21,7 +21,9 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setLoadError("");
     getChatMessages(chat._id)
       .then(data => {
-        setMessages(data.map(msg => ({
+        // Si la respuesta es {messages: [], total: 0}, no es error
+        let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
+        setMessages(msgs.map(msg => ({
           id: msg._id,
           from: msg.sender,
           text: msg.message,
@@ -111,12 +113,15 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   };
 
   if (loadError) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#fff' }}>
-        <div style={{ color: '#e74c3c', fontWeight: 700, fontSize: 18, marginBottom: 18 }}>{loadError}</div>
-        <button onClick={onBack} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer' }}>Volver a la lista de chats</button>
-      </div>
-    );
+    // Solo mostrar error si realmente hubo un error en la petición, no si la lista está vacía
+    if (!loading && messages.length === 0) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#fff' }}>
+          <div style={{ color: '#e74c3c', fontWeight: 700, fontSize: 18, marginBottom: 18 }}>{loadError}</div>
+          <button onClick={onBack} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer' }}>Volver a la lista de chats</button>
+        </div>
+      );
+    }
   }
 
   return (

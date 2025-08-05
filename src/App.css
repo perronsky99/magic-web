@@ -1,0 +1,164 @@
+:root {
+  --primary: #00cfff;
+  --secondary: #5f4cff;
+  --green: #b6ffb2;
+  --bg: #0f1126;
+  --text: #d9d9e3;
+  --card: #1a1c3a;
+  --title: #00cfff;
+  --accent: #caff87;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  max-width: 1200px;
+  width: 100%;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 60px;
+}
+
+.logo {
+  width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+nav a {
+  color: #d2ffb7;
+  font-weight: 500;
+}
+
+nav .sign-up {
+  background: var(--secondary);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hero {
+  text-align: center;
+  margin-top: 50px;
+  padding: 0 20px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  color: var(--title);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.hero p {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #aaa;
+}
+
+.hero-buttons {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.hero-buttons .btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hero-buttons .primary {
+  background: var(--primary);
+  color: black;
+}
+
+.hero-buttons .secondary {
+  background: #1e2b4d;
+  color: white;
+}
+
+.about {
+  background-color: var(--card);
+  margin: 50px auto;
+  padding: 30px;
+  width: 80%;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.about h2 {
+  color: var(--accent);
+  font-size: 1.8rem;
+}
+
+.about p {
+  color: #ccc;
+  margin-top: 10px;
+  font-size: 1rem;
+}
+
+.features {
+  display: flex;
+  justify-content: space-around;
+  margin: 60px auto;
+  padding: 0 40px;
+  flex-wrap: wrap;
+}
+
+.feature {
+  width: 280px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.feature h3 {
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.feature p {
+  color: #aaa;
+}
+
+.footer {
+  text-align: center;
+  padding-bottom: 40px;
+  font-size: 0.9rem;
+  color: #888;
+}

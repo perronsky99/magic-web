@@ -11,15 +11,21 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   const [loadingChats, setLoadingChats] = useState(true);
 
   // Cargar chats reales al montar
-  useEffect(() => {
-    let mounted = true;
+  const [apiError, setApiError] = useState("");
+  // Función para cargar chats (permite reintentar)
+  const loadChats = () => {
     setLoadingChats(true);
+    setApiError("");
     getChats().then(data => {
-      if (mounted) setChats(Array.isArray(data) ? data : []);
-    }).catch(()=>{
-      if (mounted) setChats([]);
+      setChats(Array.isArray(data) ? data : []);
+    }).catch((err)=>{
+      setChats([]);
+      setApiError("No se pudieron cargar los chats. Intenta reintentar o revisa tu conexión.");
     }).finally(()=>setLoadingChats(false));
-    return () => { mounted = false; };
+  };
+  useEffect(() => {
+    loadChats();
+    // eslint-disable-next-line
   }, []);
 
   // Buscar usuarios reales desde el backend
@@ -43,17 +49,17 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   };
 
   // Crear chat real
+  const [chatError, setChatError] = useState("");
   const handleCreateChat = async (userToChat) => {
     setShowModal(false);
     setSearch("");
     setResults([]);
+    setChatError("");
     try {
       const chat = await createChat(user._id, userToChat._id);
       // Si el backend responde solo con msg, buscar el chat existente
       if (chat && chat.msg && !chat._id) {
-        // Buscar el chat existente entre los participantes
         const existing = chats.find(c => {
-          // Puede ser participant_one o participant_two
           const ids = [c.participant_one?._id || c.participant_one, c.participant_two?._id || c.participant_two];
           return ids.includes(user._id) && ids.includes(userToChat._id);
         });
@@ -63,13 +69,11 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
             _id: existing._id || existing.id,
             otherUser: (existing.participants || []).find(u => u._id !== user._id && u.email !== user.email) || existing.otherUser
           };
-          console.log("[DEBUG] Chat ya existente seleccionado:", normalizedChat);
           onSelectChat(normalizedChat);
-          return;
         } else {
-          alert("Ya existe una conversación, pero no se pudo encontrar el chat en la lista.");
-          return;
+          setChatError("Ya existe una conversación, pero no se pudo encontrar el chat en la lista.");
         }
+        return;
       }
       // Normalizar el chat recibido del backend
       const normalizedChat = {
@@ -77,10 +81,9 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         _id: chat._id || chat.id,
         otherUser: (chat.participants || []).find(u => u._id !== user._id && u.email !== user.email) || chat.otherUser
       };
-      console.log("[DEBUG] Chat creado y seleccionado:", normalizedChat);
       onSelectChat(normalizedChat);
     } catch (err) {
-      alert("No se pudo crear el chat: " + (err.message || "Error desconocido"));
+      setChatError("No se pudo crear el chat: " + (err.message || "Error desconocido"));
     }
   };
 
@@ -98,47 +101,65 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
       <div style={{flex:1,overflowY:'auto',padding:'0 0 24px 0',margin:0,display:'flex',flexDirection:'column',background:'#fafdff',zIndex:1}}>
         {loadingChats ? (
           <div style={{color:'#7a8ca3',fontWeight:500,padding:'48px 0',textAlign:'center',fontSize:18,flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>Cargando chats...</div>
+        ) : apiError ? (
+          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',background:'#fafdff'}}>
+            <div style={{color:'#e74c3c',fontWeight:600,padding:'24px 0',textAlign:'center',fontSize:18,marginBottom:18}}>{apiError}</div>
+            <button onClick={loadChats} style={{background:'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)',color:'#fff',border:'none',borderRadius:10,padding:'10px 24px',fontWeight:700,fontSize:16,boxShadow:'0 1px 8px #3a8dde22',cursor:'pointer',marginTop:10}}>Reintentar</button>
+          </div>
         ) : chats.length === 0 ? (
-          <div style={{color:'#7a8ca3',fontWeight:600,padding:'48px 0',textAlign:'center',fontSize:18,flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
-            <span style={{fontSize:20,display:'block',marginBottom:10}}>
-              No tienes chats disponibles.
-            </span>
-            <span style={{fontSize:15,color:'#a0b3c6'}}>¡Crea un nuevo chat para comenzar a conversar!</span>
+          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',background:'#fafdff'}}>
+            <div style={{textAlign:'center',marginTop:32}}>
+              <div style={{fontSize:32,fontWeight:800,color:'#3a8dde',marginBottom:16}}>M2k</div>
+              <div style={{fontSize:26,fontWeight:700,marginBottom:12}}>¡Bienvenido a <span style={{color:'#3a8dde'}}>Magic2k</span>!</div>
+              <div style={{fontSize:17,color:'#7a8ca3',marginBottom:10}}>Selecciona un chat o grupo para comenzar a conversar.<br/>Disfruta una experiencia nostálgica, moderna y única.</div>
+              <div style={{fontWeight:700,color:'#3a8dde',fontSize:15,marginTop:8}}>Simple. Privado. Mágico.</div>
+            </div>
+            {chatError && (
+              <div style={{color:'#e74c3c',fontWeight:600,padding:'16px 0',textAlign:'center',fontSize:16}}>{chatError}</div>
+            )}
           </div>
         ) : (
-          chats.map(chat => {
-            // Buscar el otro usuario (no el logueado)
-            const other = (chat.participants || []).find(u => u._id !== user._id && u.email !== user.email) || chat.otherUser;
-            // Normalizar el objeto chat para asegurar que tenga _id
-            const normalizedChat = {
-              ...chat,
-              _id: chat._id || chat.id,
-              otherUser: other
-            };
-            return (
-              <button key={normalizedChat._id} onClick={() => {
-                console.log("[DEBUG] Chat seleccionado:", normalizedChat);
-                onSelectChat(normalizedChat);
-              }} style={{width:'96%',margin:'0 2% 10px 2%',background:'#fff',border:'1.5px solid #e3eaf2',borderRadius:12,padding:'12px 14px',display:'flex',alignItems:'center',gap:12,cursor:'pointer',transition:'background .2s',fontWeight:600,color:'#23263a',boxShadow:'0 1px 8px #3a8dde08'}}>
-                <span style={{background:'#e3eaf2',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,color:'#3a8dde',fontWeight:700}}>
-                  {(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}
-                </span>
-                <span style={{flex:1,textAlign:'left'}}>
-                  {other?.firstName ? (
-                    <>
-                      {other.firstName} {other.lastName || ''}
-                      <span style={{color:'#7a8ca3',fontWeight:400,fontSize:13,marginLeft:6}}>{other.email}</span>
-                    </>
-                  ) : (
-                    other?.email || 'Usuario'
-                  )}
-                </span>
-              </button>
-            );
-          })
+          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',padding:'32px 0 0 0',background:'#fafdff'}}>
+            <div style={{fontSize:22,fontWeight:700,color:'#3a8dde',marginBottom:18}}>Tus chats</div>
+            <div style={{width:'100%',maxWidth:480}}>
+              {chats.map(chat => {
+                // Normalizar participantes para cualquier formato del backend
+                let participants = chat.participants;
+                if (!participants && chat.participant_one && chat.participant_two) {
+                  participants = [chat.participant_one, chat.participant_two];
+                }
+                const other = (participants || []).find(u => u && u._id !== user._id && u.email !== user.email) || chat.otherUser;
+                const normalizedChat = {
+                  ...chat,
+                  participants: participants,
+                  _id: chat._id || chat.id,
+                  otherUser: other
+                };
+                return (
+                  <button key={normalizedChat._id} onClick={() => {
+                    onSelectChat(normalizedChat);
+                  }} style={{width:'100%',background:'#fff',border:'1.5px solid #e3eaf2',borderRadius:12,padding:'14px 18px',marginBottom:14,display:'flex',alignItems:'center',gap:14,cursor:'pointer',transition:'background .2s',fontWeight:600,color:'#23263a',boxShadow:'0 1px 8px #3a8dde08'}}>
+                    <span style={{background:'#e3eaf2',borderRadius:'50%',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,color:'#3a8dde',fontWeight:700}}>
+                      {(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}
+                    </span>
+                    <span style={{flex:1,textAlign:'left'}}>
+                      {other?.firstName ? (
+                        <>
+                          {other.firstName} {other.lastName || ''}
+                          <span style={{color:'#7a8ca3',fontWeight:400,fontSize:13,marginLeft:6}}>{other.email}</span>
+                        </>
+                      ) : (
+                        other?.email || 'Usuario'
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
-      <button onClick={onProfile} style={{margin:'18px 18px 12px 18px',background:'#fafdff',border:'1.5px solid #e3eaf2',borderRadius:10,padding:'8px 18px',color:'#3a8dde',fontWeight:700,cursor:'pointer',zIndex:2}}>Mi perfil</button>
+      {/* Botón 'Mi perfil' eliminado por solicitud del usuario */}
 
       {/* Modal para crear chat */}
       {showModal && (

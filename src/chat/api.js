@@ -39,19 +39,28 @@ export async function refreshAccessToken() {
 export async function fetchWithAuth(url, options = {}) {
   let token = getAccessToken();
   if (token && !token.startsWith('Bearer ')) token = 'Bearer ' + token;
-  let res = await fetch(url, {
-    ...options,
-    headers: { ...(options.headers || {}), Authorization: token }
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), Authorization: token }
+    });
+  } catch (e) {
+    throw new Error('No se pudo conectar con el servidor. Intenta más tarde.');
+  }
   if (res.status === 401) {
     // Intentar refrescar
     try {
       let newToken = await refreshAccessToken();
       if (newToken && !newToken.startsWith('Bearer ')) newToken = 'Bearer ' + newToken;
-      res = await fetch(url, {
-        ...options,
-        headers: { ...(options.headers || {}), Authorization: newToken }
-      });
+      try {
+        res = await fetch(url, {
+          ...options,
+          headers: { ...(options.headers || {}), Authorization: newToken }
+        });
+      } catch (e) {
+        throw new Error('No se pudo conectar con el servidor. Intenta más tarde.');
+      }
     } catch (e) {
       clearTokens();
       throw new Error('Sesión expirada. Vuelve a iniciar sesión.');
@@ -64,6 +73,10 @@ export async function fetchWithAuth(url, options = {}) {
       const data = await res.clone().json();
       msg = data.msg || msg;
     } catch {}
+    // Errores 500 y caídas del backend
+    if (res.status >= 500) {
+      msg = 'El servidor no responde correctamente. Intenta más tarde.';
+    }
     throw new Error(msg);
   }
   return res;

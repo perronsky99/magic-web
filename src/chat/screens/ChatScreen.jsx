@@ -1,19 +1,31 @@
 import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
+import { getChatMessages, sendMessage } from "../api";
 
 // UI de chat profesional y minimalista
 export default function ChatScreen({ chat, user, token, onBack }) {
-  // Simulación de mensajes (reemplazar por fetch real)
-  const [messages, setMessages] = useState([
-    { id: 1, from: user?._id, text: "¡Hola!", time: "10:00" },
-    { id: 2, from: chat?.otherUser?._id, text: "¡Hola! ¿Cómo estás?", time: "10:01" },
-    { id: 3, from: user?._id, text: "Todo bien, ¿y vos?", time: "10:02" },
-  ]);
-  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const ticAudioRef = useRef();
   const messagesEndRef = useRef(null);
+  // Cargar historial real al montar
+  useEffect(() => {
+    if (!chat?._id) return;
+    setLoading(true);
+    getChatMessages(chat._id)
+      .then(data => {
+        // Normalizar mensajes para UI
+        setMessages(data.map(msg => ({
+          id: msg._id,
+          from: msg.sender,
+          text: msg.message,
+          time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+        })));
+      })
+      .catch(() => setMessages([]))
+      .finally(() => setLoading(false));
+  }, [chat?._id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,23 +33,44 @@ export default function ChatScreen({ chat, user, token, onBack }) {
 
 
   // Enviar texto
-  const handleSend = (text) => {
-    setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
+  const handleSend = async (text) => {
+    if (!text.trim()) return;
+    if (!chat?._id) {
+      alert('Error: el chat seleccionado no tiene un ID válido. No se puede enviar el mensaje.');
+      return;
+    }
+    setLoading(true);
+    try {
+      // Log para depuración
+      console.log('Enviando mensaje:', { chatId: chat._id, text });
+      const msg = await sendMessage(chat._id, text);
+      setMessages(msgs => ([...msgs, {
+        id: msg._id,
+        from: msg.sender,
+        text: msg.message,
+        time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+      }]));
+    } catch (e) {
+      console.error('Error al enviar mensaje:', e);
+    }
+    setLoading(false);
   };
 
-  // Enviar imagen
+  // Enviar imagen (a implementar en backend)
   const handleSendImage = (file) => {
+    // TODO: implementar subida real
     const url = URL.createObjectURL(file);
     setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, image: url, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
   };
 
-  // Enviar audio
+  // Enviar audio (a implementar en backend)
   const handleSendAudio = (audioBlob) => {
+    // TODO: implementar subida real
     const url = URL.createObjectURL(audioBlob);
     setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, audio: url, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
   };
 
-  // Enviar TIC (zumbido)
+  // Enviar TIC (zumbido, solo UI por ahora)
   const handleSendTic = () => {
     setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, tic: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
     ticAudioRef.current?.play();

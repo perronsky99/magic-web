@@ -3,6 +3,7 @@ import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
 import { getChatMessages, sendMessage, sendImage, sendAudio } from "../api";
 import { getSocket } from "../socket";
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 
 // UI de chat profesional y minimalista
 export default function ChatScreen({ chat, user, token, onBack }) {
@@ -13,6 +14,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   const ticAudioRef = useRef();
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
+  const messageRefs = useRef({}); // refs persistentes por id
 
   // Cargar historial real al montar
   useEffect(() => {
@@ -199,28 +201,51 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       </div>
 
       {/* Mensajes */}
-      <div id="chat-area" style={{ flex: 1, overflowY: 'auto', padding: '28px 0 18px 0', background: 'linear-gradient(120deg,#fafdff 60%,#e3eaf2 100%)', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow .2s' }}>
-        {messages.map((msg, idx) => {
-          const myId = user && (user._id || user.id || user.uid || user.idUser) ? String(user._id || user.id || user.uid || user.idUser) : '';
-          const msgFrom = msg && (
-            (msg.user && (msg.user._id || msg.user.id)) ? String(msg.user._id || msg.user.id) :
-              msg.from ? String(msg.from) :
-                msg.sender ? String(msg.sender) :
-                  msg.userId ? String(msg.userId) :
-                    ''
-          );
-          const isMine = myId && msgFrom && myId === msgFrom;
-          const key = msg.id ? `${msg.id}-${isMine ? 'mine' : 'other'}-${idx}` : `${idx}-${isMine ? 'mine' : 'other'}`;
-          // Colores Magic2k
-          const bubbleColor = isMine ? 'var(--primary)' : '#fff';
-          const textColor = isMine ? '#fff' : '#23263a';
-          const borderColor = isMine ? 'var(--primary)' : '#e3eaf2';
-          const tailColor = isMine ? 'var(--primary)' : '#fff';
-          const align = isMine ? 'flex-end' : 'flex-start';
-          const tailPosition = isMine ? { right: -10, borderLeftColor: tailColor } : { left: -10, borderRightColor: tailColor };
-          return (
-            <div key={key} style={{ display: 'flex', justifyContent: align, padding: '0 22px', position: 'relative' }}>
-              {msg.text && (
+      <div id="chat-area" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '28px 0 18px 0', background: 'linear-gradient(120deg,#fafdff 60%,#e3eaf2 100%)', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow .2s', boxSizing: 'border-box', width: '100%' }}>
+        <TransitionGroup>
+          {messages.map((msg, idx) => {
+            const myId = user && (user._id || user.id || user.uid || user.idUser) ? String(user._id || user.id || user.uid || user.idUser) : '';
+            const msgFrom = msg && (
+              (msg.user && (msg.user._id || msg.user.id)) ? String(msg.user._id || msg.user.id) :
+                msg.from ? String(msg.from) :
+                  msg.sender ? String(msg.sender) :
+                    msg.userId ? String(msg.userId) :
+                      ''
+            );
+            const isMine = myId && msgFrom && myId === msgFrom;
+            const key = msg.id ? String(msg.id) : `${idx}`;
+            // refs persistentes por id
+            if (!messageRefs.current[key]) messageRefs.current[key] = React.createRef();
+            // Colores Magic2k
+            const bubbleColor = isMine ? 'var(--primary)' : '#fff';
+            const textColor = isMine ? '#fff' : '#23263a';
+            const borderColor = isMine ? 'var(--primary)' : '#e3eaf2';
+            const align = isMine ? 'flex-end' : 'flex-start';
+            // Normalización y fallback
+            let content = null;
+            if (msg.image) {
+              content = (
+                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0 }}>
+                  <img src={msg.image} alt="img" style={{ maxWidth: 200, maxHeight: 180, borderRadius: 12, objectFit: 'cover', display: 'block' }} />
+                  <span style={{ fontSize: 11, color: '#7a8ca3', marginLeft: 8 }}>{msg.time}</span>
+                </div>
+              );
+            } else if (msg.audio) {
+              content = (
+                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0 }}>
+                  <audio src={msg.audio} controls style={{ width: 160 }} />
+                  <span style={{ fontSize: 11, color: '#7a8ca3' }}>{msg.time}</span>
+                </div>
+              );
+            } else if (msg.tic) {
+              content = (
+                <div style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8, marginRight: isMine ? 18 : 0 }}>
+                  <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
+                  <span style={{ fontSize: 11, color: '#23263a', marginLeft: 8 }}>{msg.time}</span>
+                </div>
+              );
+            } else if (msg.text) {
+              content = (
                 <div style={{
                   background: bubbleColor,
                   color: textColor,
@@ -237,7 +262,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                   position: 'relative',
                   marginBottom: 8,
                   marginLeft: isMine ? 24 : 0,
-                  marginRight: isMine ? 0 : 24,
+                  marginRight: isMine ? 18 : 0,
                   alignSelf: align,
                   border: `2px solid ${borderColor}`,
                   opacity: 0.98,
@@ -261,31 +286,27 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                     display: 'inline-block',
                   }} />
                 </div>
-              )}
-              {/* Imagen */}
-              {msg.image && (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8 }}>
-                  <img src={msg.image} alt="img" style={{ maxWidth: 200, maxHeight: 180, borderRadius: 12, objectFit: 'cover', display: 'block' }} />
-                  <span style={{ fontSize: 11, color: '#7a8ca3', marginLeft: 8 }}>{msg.time}</span>
+              );
+            } else {
+              // Fallback visual para mensajes inesperados
+              content = (
+                <div style={{ background: '#ffeded', color: '#c0392b', borderRadius: 14, padding: '10px 16px', fontWeight: 600, fontSize: 15, marginBottom: 8, border: '1.5px solid #e57373', alignSelf: align }}>
+                  [Mensaje no soportado]
                 </div>
-              )}
-              {/* Audio */}
-              {msg.audio && (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8 }}>
-                  <audio src={msg.audio} controls style={{ width: 160 }} />
-                  <span style={{ fontSize: 11, color: '#7a8ca3' }}>{msg.time}</span>
+              );
+            }
+            if (!content) return null;
+            return (
+              <CSSTransition key={key} timeout={320} classNames="msg-bubble" nodeRef={messageRefs.current[key]}>
+                <div ref={messageRefs.current[key]} style={{ display: 'flex', justifyContent: align, width: '100%', boxSizing: 'border-box', overflowX: 'visible' }}>
+                  <div style={{ maxWidth: '70vw', minWidth: 0, width: 'fit-content', boxSizing: 'border-box', margin: 0, padding: 0 }}>
+                    {content}
+                  </div>
                 </div>
-              )}
-              {/* TIC (zumbido) */}
-              {msg.tic && (
-                <div style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8 }}>
-                  <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
-                  <span style={{ fontSize: 11, color: '#23263a', marginLeft: 8 }}>{msg.time}</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
+              </CSSTransition>
+            );
+          })}
+        </TransitionGroup>
         <div ref={messagesEndRef} />
         <audio ref={ticAudioRef} src={ticSound} preload="auto" />
         <style>{`

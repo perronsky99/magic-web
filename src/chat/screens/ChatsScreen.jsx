@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getUsers, createChat, getChats } from "../api";
+import { useSocket } from "../SocketContext";
 
 // Utilidad simple de debounce
 function debounce(fn, delay) {
@@ -20,6 +21,8 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   const [loadingChats, setLoadingChats] = useState(true);
   const [apiError, setApiError] = useState("");
   const [chatError, setChatError] = useState("");
+  const socket = useSocket();
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   // Función para cargar chats (permite reintentar)
   const loadChats = useCallback(() => {
@@ -37,6 +40,23 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
     loadChats();
     // eslint-disable-next-line
   }, [loadChats]);
+
+  useEffect(() => {
+    if (!user?._id || !socket) return;
+    const handleOnlineUsers = (users) => setOnlineUsers(users.map(String));
+    const handleUserOnline = (userId) => setOnlineUsers(prev => Array.from(new Set([...prev, String(userId)])));
+    const handleUserOffline = (userId) => setOnlineUsers(prev => prev.filter(id => id !== String(userId)));
+    socket.on("online_users", handleOnlineUsers);
+    socket.on("user_online", handleUserOnline);
+    socket.on("user_offline", handleUserOffline);
+    // Solicitar la lista al entrar
+    socket.emit("identify", user._id);
+    return () => {
+      socket.off("online_users", handleOnlineUsers);
+      socket.off("user_online", handleUserOnline);
+      socket.off("user_offline", handleUserOffline);
+    };
+  }, [user?._id, socket]);
 
   // Debounced search handler
   const debouncedSearch = useMemo(() => debounce(async (value) => {
@@ -119,20 +139,31 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
           <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, color: '#3a8dde', fontWeight: 700 }}>
             {(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}
           </span>
-          <span style={{ flex: 1, textAlign: 'left' }}>
+          <span style={{ flex: 1, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {other?.firstName ? (
               <>
-                {other.firstName} {other.lastName || ''}
-                <span style={{ color: '#7a8ca3', fontWeight: 400, fontSize: 13, marginLeft: 6 }}>{other.email}</span>
+                <span style={{ fontWeight: 700 }}>{other.firstName} {other.lastName || ''}</span>
+                <span style={{ color: '#7a8ca3', fontWeight: 400, fontSize: 13, marginLeft: 0 }}>{other.email}</span>
               </>
             ) : (
-              other?.email || 'Usuario'
+              <span style={{ fontWeight: 700 }}>{other?.email || 'Usuario'}</span>
+            )}
+            {other?._id && onlineUsers.includes(String(other._id)) ? (
+              <span style={{ color: '#3ac47d', fontWeight: 600, fontSize: 13, marginTop: 1, letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3ac47d', display: 'inline-block', boxShadow: '0 0 4px #3ac47d88' }} />
+                En línea
+              </span>
+            ) : (
+              <span style={{ color: '#7a8ca3', fontWeight: 600, fontSize: 13, marginTop: 1, letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e3eaf2', display: 'inline-block', boxShadow: '0 0 4px #7a8ca344' }} />
+                Desconectado
+              </span>
             )}
           </span>
         </button>
       );
     })
-  ), [chats, user, onSelectChat]);
+  ), [chats, user, onSelectChat, onlineUsers]);
 
   return (
     <div style={{ position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fafdff' }}>

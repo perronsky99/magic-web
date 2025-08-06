@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
 import { getChatMessages, sendMessage, sendImage, sendAudio } from "../api";
-import { getSocket } from "../socket";
+import { useSocket } from "../SocketContext";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 
 // UI de chat profesional y minimalista
@@ -14,7 +14,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   const [typingUser, setTypingUser] = useState("");
   const ticAudioRef = useRef();
   const messagesEndRef = useRef(null);
-  const socketRef = useRef(null);
+  const socket = useSocket();
   const messageRefs = useRef({}); // refs persistentes por id
 
   // Cargar historial real al montar
@@ -42,14 +42,10 @@ export default function ChatScreen({ chat, user, token, onBack }) {
 
   // Sockets: unirse a la sala y recibir mensajes en tiempo real
   useEffect(() => {
-    if (!chat?._id || !token) return;
+    if (!chat?._id || !socket) return;
     setSocketError(false);
-    socketRef.current = getSocket(token);
-    socketRef.current.on("connect_error", () => {
-      setSocketError(true);
-    });
-    socketRef.current.emit("join", chat._id);
-    socketRef.current.on("message", msg => {
+    socket.emit("join", chat._id);
+    const handleMessage = msg => {
       setMessages(prev => prev.some(m => m.id === msg._id)
         ? prev
         : [
@@ -62,26 +58,31 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           }
         ]
       );
-    });
-    // Recibir TIC en tiempo real
-    socketRef.current.on("tic", data => {
+    };
+    const handleTic = data => {
       setMessages(msgs => ([...msgs, {
         id: Date.now() + Math.random(),
         from: data.userId,
         tic: true,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]));
-    });
-    // Escuchar typing
-    socketRef.current.on("typing", (userName) => {
+    };
+    const handleTyping = (userName) => {
       setTypingUser(userName);
       setTimeout(() => setTypingUser(""), 2000);
-    });
-    return () => {
-      socketRef.current.emit("leave", chat._id);
-      socketRef.current.disconnect();
     };
-  }, [chat?._id, token]);
+    socket.on("message", handleMessage);
+    socket.on("tic", handleTic);
+    socket.on("typing", handleTyping);
+    socket.on("connect_error", () => setSocketError(true));
+    return () => {
+      socket.emit("leave", chat._id);
+      socket.off("message", handleMessage);
+      socket.off("tic", handleTic);
+      socket.off("typing", handleTyping);
+      socket.off("connect_error");
+    };
+  }, [chat?._id, socket]);
 
   // Polling para actualizar mensajes si no hay WebSocket
   useEffect(() => {
@@ -162,8 +163,8 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       setTimeout(() => chatArea.classList.remove('tic-vibrate'), 600);
     }
     // Emitir TIC al backend para que lo reciba el receptor
-    if (socketRef.current && chat?._id) {
-      socketRef.current.emit("tic", { chatId: chat._id, userId: user?._id });
+    if (socket && chat?._id) {
+      socket.emit("tic", { chatId: chat._id, userId: user?._id });
     }
   };
 
@@ -340,9 +341,9 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         onSendAudio={handleSendAudio}
         onSendTic={handleSendTic}
         onTyping={() => {
-          if (socketRef.current && chat?._id && user) {
+          if (socket && chat?._id && user) {
             const nombre = user.firstName || user.email || "Usuario";
-            socketRef.current.emit("typing", { roomId: chat._id, user: nombre });
+            socket.emit("typing", { roomId: chat._id, user: nombre });
           }
         }}
         loading={loading}

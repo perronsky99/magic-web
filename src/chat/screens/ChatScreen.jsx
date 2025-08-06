@@ -225,21 +225,21 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             let content = null;
             if (msg.image) {
               content = (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0 }}>
+                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
                   <img src={msg.image} alt="img" style={{ maxWidth: 200, maxHeight: 180, borderRadius: 12, objectFit: 'cover', display: 'block' }} />
                   <span style={{ fontSize: 11, color: '#7a8ca3', marginLeft: 8 }}>{msg.time}</span>
                 </div>
               );
             } else if (msg.audio) {
               content = (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0 }}>
+                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
                   <audio src={msg.audio} controls style={{ width: 160 }} />
                   <span style={{ fontSize: 11, color: '#7a8ca3' }}>{msg.time}</span>
                 </div>
               );
             } else if (msg.tic) {
               content = (
-                <div style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8, marginRight: isMine ? 18 : 0 }}>
+                <div style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
                   <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
                   <span style={{ fontSize: 11, color: '#23263a', marginLeft: 8 }}>{msg.time}</span>
                 </div>
@@ -261,7 +261,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                   wordBreak: 'break-word',
                   position: 'relative',
                   marginBottom: 8,
-                  marginLeft: isMine ? 24 : 0,
+                  marginLeft: isMine ? 24 : 28,
                   marginRight: isMine ? 18 : 0,
                   alignSelf: align,
                   border: `2px solid ${borderColor}`,

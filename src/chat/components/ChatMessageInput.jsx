@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { FaPaperPlane, FaMicrophone, FaImage, FaBolt } from "react-icons/fa";
 
-export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onSendTic, loading }) {
+export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onSendTic, loading, onTyping }) {
   const [input, setInput] = useState("");
   const fileInputRef = useRef();
   const [recording, setRecording] = useState(false);
@@ -51,26 +51,29 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
   };
 
   return (
-    <form onSubmit={handleSend} style={{display:'flex',alignItems:'center',gap:10,padding:'14px 18px',borderTop:'1.5px solid #e3eaf2',background:'rgba(255,255,255,0.97)',boxShadow:'0 -2px 12px #3a8dde0a'}}>
-      <button type="button" onClick={handleTic} title="Enviar TIC" style={{background:'none',border:'none',fontSize:22,color:'#f7b731',cursor:'pointer',marginRight:2}}>
+    <form onSubmit={handleSend} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', borderTop: '1.5px solid #e3eaf2', background: 'rgba(255,255,255,0.97)', boxShadow: '0 -2px 12px #3a8dde0a' }}>
+      <button type="button" onClick={handleTic} title="Enviar TIC" style={{ background: 'none', border: 'none', fontSize: 22, color: '#f7b731', cursor: 'pointer', marginRight: 2 }}>
         <FaBolt />
       </button>
-      <button type="button" onClick={()=>fileInputRef.current.click()} title="Enviar imagen" style={{background:'none',border:'none',fontSize:22,color:'#3a8dde',cursor:'pointer'}}>
+      <button type="button" onClick={() => fileInputRef.current.click()} title="Enviar imagen" style={{ background: 'none', border: 'none', fontSize: 22, color: '#3a8dde', cursor: 'pointer' }}>
         <FaImage />
-        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImage} style={{display:'none'}} />
+        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImage} style={{ display: 'none' }} />
       </button>
-      <button type="button" onClick={handleRecord} title={recording ? "Detener grabación" : "Grabar nota de voz"} style={{background:recording?'#3a8dde':'none',border:'none',fontSize:22,color:recording?'#fff':'#3a8dde',cursor:'pointer',transition:'background .2s',borderRadius:8,padding:recording?'4px 8px':'0'}}>
+      <button type="button" onClick={handleRecord} title={recording ? "Detener grabación" : "Grabar nota de voz"} style={{ background: recording ? '#3a8dde' : 'none', border: 'none', fontSize: 22, color: recording ? '#fff' : '#3a8dde', cursor: 'pointer', transition: 'background .2s', borderRadius: 8, padding: recording ? '4px 8px' : '0' }}>
         <FaMicrophone />
       </button>
       <input
         type="text"
         value={input}
-        onChange={e=>setInput(e.target.value)}
+        onChange={e => {
+          setInput(e.target.value);
+          if (onTyping) onTyping();
+        }}
         placeholder="Escribe un mensaje..."
-        style={{flex:1,padding:'12px 16px',borderRadius:14,border:'1.5px solid #e3eaf2',fontSize:16,outline:'none',background:'#fafdff',color:'#23263a',fontWeight:500,boxShadow:'0 1px 4px #3a8dde11',transition:'border .2s'}}
+        style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: '1.5px solid #e3eaf2', fontSize: 16, outline: 'none', background: '#fafdff', color: '#23263a', fontWeight: 500, boxShadow: '0 1px 4px #3a8dde11', transition: 'border .2s' }}
         disabled={loading}
       />
-      <button type="submit" disabled={loading} style={{padding:'10px 22px',borderRadius:12,background:'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)',color:'#fff',fontWeight:700,border:'none',fontSize:16,boxShadow:'0 1px 8px #3a8dde22',letterSpacing:1,transition:'background .2s',cursor:'pointer',opacity:loading?0.6:1}}>
+      <button type="submit" disabled={loading} style={{ padding: '10px 22px', borderRadius: 12, background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', fontWeight: 700, border: 'none', fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', letterSpacing: 1, transition: 'background .2s', cursor: 'pointer', opacity: loading ? 0.6 : 1 }}>
         <FaPaperPlane />
       </button>
     </form>

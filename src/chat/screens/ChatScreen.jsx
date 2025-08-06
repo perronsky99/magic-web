@@ -11,6 +11,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   const [loading, setLoading] = useState(false);
   const [socketError, setSocketError] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [typingUser, setTypingUser] = useState("");
   const ticAudioRef = useRef();
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
@@ -70,6 +71,11 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         tic: true,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]));
+    });
+    // Escuchar typing
+    socketRef.current.on("typing", (userName) => {
+      setTypingUser(userName);
+      setTimeout(() => setTypingUser(""), 2000);
     });
     return () => {
       socketRef.current.emit("leave", chat._id);
@@ -195,7 +201,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             )}
           </div>
           <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500 }}>
-            En línea
+            {socketError ? 'Desconectado' : 'En línea'}
           </div>
         </div>
       </div>
@@ -307,6 +313,11 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             );
           })}
         </TransitionGroup>
+        {typingUser && (
+          <div style={{ color: '#7a8ca3', fontSize: 15, fontWeight: 500, marginLeft: 32, marginBottom: 8, fontStyle: 'italic', transition: 'opacity .2s' }}>
+            {`${typingUser} está escribiendo...`}
+          </div>
+        )}
         <div ref={messagesEndRef} />
         <audio ref={ticAudioRef} src={ticSound} preload="auto" />
         <style>{`
@@ -328,6 +339,12 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         onSendImage={handleSendImage}
         onSendAudio={handleSendAudio}
         onSendTic={handleSendTic}
+        onTyping={() => {
+          if (socketRef.current && chat?._id && user) {
+            const nombre = user.firstName || user.email || "Usuario";
+            socketRef.current.emit("typing", { roomId: chat._id, user: nombre });
+          }
+        }}
         loading={loading}
         user={user}
       />

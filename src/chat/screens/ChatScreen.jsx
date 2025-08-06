@@ -168,6 +168,31 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     }
   };
 
+  // Pseudo/nickname editable
+  const otherUserId = chat?.otherUser?._id || chat?.otherUser?.id || chat?.otherUser?.userId || chat?.otherUser?.uid;
+  const pseudoKey = otherUserId ? `pseudo_${otherUserId}` : null;
+  const [pseudo, setPseudo] = useState(() => {
+    if (pseudoKey) {
+      return localStorage.getItem(pseudoKey) || "";
+    }
+    return "";
+  });
+  const [editingPseudo, setEditingPseudo] = useState(false);
+  const pseudoInputRef = useRef();
+
+  useEffect(() => {
+    if (editingPseudo && pseudoInputRef.current) {
+      pseudoInputRef.current.focus();
+    }
+  }, [editingPseudo]);
+
+  const handlePseudoSave = () => {
+    if (pseudoKey) {
+      localStorage.setItem(pseudoKey, pseudo.slice(0, 50));
+    }
+    setEditingPseudo(false);
+  };
+
   if (loadError) {
     // Solo mostrar error si realmente hubo un error en la petición, no si la lista está vacía
     if (!loading && messages.length === 0) {
@@ -201,8 +226,59 @@ export default function ChatScreen({ chat, user, token, onBack }) {
               chat?.otherUser?.email || "Usuario"
             )}
           </div>
+          <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 2, minHeight: 28, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {editingPseudo ? (
+              <input
+                ref={pseudoInputRef}
+                type="text"
+                value={pseudo}
+                maxLength={50}
+                onChange={e => setPseudo(e.target.value)}
+                onBlur={handlePseudoSave}
+                onKeyDown={e => { if (e.key === 'Enter') handlePseudoSave(); }}
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: '#3a8dde',
+                  border: '1.5px solid #e3eaf2',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  outline: 'none',
+                  background: '#fafdff',
+                  minWidth: 60,
+                  maxWidth: 220,
+                  boxShadow: '0 1px 4px #3a8dde11',
+                  transition: 'border .2s',
+                }}
+                placeholder="Escribe un pseudo..."
+              />
+            ) : (
+              <span
+                style={{
+                  color: pseudo ? '#3a8dde' : '#b0b8c9',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  borderBottom: '1px dashed #3a8dde44',
+                  padding: '2px 4px',
+                  borderRadius: 6,
+                  minWidth: 60,
+                  maxWidth: 220,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  background: pseudo ? '#eaf6ff' : 'transparent',
+                  transition: 'background .2s',
+                }}
+                title="Haz click para editar tu pseudo"
+                onClick={() => setEditingPseudo(true)}
+              >
+                {pseudo || 'Agrega un pseudo, frase o emoji ✨'}
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500 }}>
-            {socketError ? 'Desconectado' : 'En línea'}
+            {/*{socketError ? 'Desconectado' : 'En línea'} */}
           </div>
         </div>
       </div>

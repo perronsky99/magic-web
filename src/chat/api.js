@@ -166,4 +166,20 @@ export async function sendAudio(chatId, file) {
   return res.json();
 }
 
+export async function updateUserProfile({ firstName, lastName, nickname, pseudo, avatar }) {
+  const formData = new FormData();
+  if (firstName) formData.append('firstName', firstName);
+  if (lastName) formData.append('lastName', lastName);
+  if (nickname) formData.append('nickname', nickname);
+  if (pseudo) formData.append('pseudo', pseudo);
+  if (avatar && typeof avatar !== 'string') formData.append('avatar', avatar); // El campo debe llamarse 'avatar'
+
+  const res = await fetchWithAuth(`${API_URL}/api/user/me`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo actualizar el perfil');
+  return res.json();
+}
+
 // Puedes agregar aquí funciones para audio, imágenes, etc.

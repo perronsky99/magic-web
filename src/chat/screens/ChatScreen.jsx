@@ -4,6 +4,16 @@ import ticSound from "../../assets/tic.mp3";
 import { getChatMessages, sendMessage, sendImage, sendAudio } from "../api";
 import { useSocket } from "../SocketContext";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
+import defaultAvatar from '../../assets/user.png';
+import { API_URL } from '../api';
+
+function getAvatarUrl(avatar) {
+  if (!avatar) return defaultAvatar;
+  if (avatar.startsWith('http')) return avatar;
+  if (avatar.startsWith('data:image')) return avatar; // base64
+  const cleanAvatar = avatar.replace(/^avatar\//, '');
+  return `${API_URL}/api/avatar/${cleanAvatar}`;
+}
 
 // UI de chat profesional y minimalista
 export default function ChatScreen({ chat, user, token, onBack }) {
@@ -211,7 +221,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 24px 14px 18px', borderBottom: '1.5px solid #e3eaf2', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 12px #3a8dde0a', zIndex: 2 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 26, color: '#3a8dde', cursor: 'pointer', marginRight: 6, marginLeft: -4 }} title="Volver">←</button>
         {chat?.otherUser?.avatar ? (
-          <img src={chat.otherUser.avatar} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22' }} />
+          <img src={getAvatarUrl(chat.otherUser.avatar)} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22' }} />
         ) : (
           <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3a8dde', fontWeight: 700, fontSize: 20 }}>👤</div>
         )}

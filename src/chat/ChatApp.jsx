@@ -8,7 +8,14 @@ import ChatScreen from "./screens/ChatScreen";
 import GroupChatScreen from "./screens/GroupChatScreen";
 import { FaUserFriends, FaComments, FaUserCircle } from "react-icons/fa";
 import { SocketProvider } from "./SocketContext";
+import { API_URL } from './api';
+import defaultAvatar from '../assets/user.png';
 
+function getAvatarUrl(avatar) {
+  if (!avatar) return defaultAvatar;
+  if (avatar.startsWith('http')) return avatar;
+  return `${API_URL}/api/${avatar.replace(/^\/+/, '')}`;
+}
 
 export default function ChatApp({ token, user, onLogout }) {
   const [section, setSection] = useState("chats"); // chats | groups | profile | chat | groupchat
@@ -55,8 +62,13 @@ export default function ChatApp({ token, user, onLogout }) {
             style={{ background: 'none', border: 'none', marginTop: 'auto', cursor: 'pointer', outline: 'none', color: section === "profile" ? '#3a8dde' : '#7a8ca3', fontSize: 30, transition: 'color .2s' }}
             title="Mi perfil">
             {user?.avatar ? (
-              <img src={user.avatar} alt="avatar" style={{ width: 36, height: 36, borderRadius: "50%", border: section === "profile" ? '2.5px solid #3a8dde' : '2.5px solid #e3eaf2', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22' }} />
-            ) : <FaUserCircle />}
+              <img
+                src={getAvatarUrl(user.avatar)}
+                alt="avatar"
+                style={{ width: 44, height: 44, borderRadius: "50%", border: section === "profile" ? '2.5px solid #3a8dde' : '2.5px solid #e3eaf2', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22', background: '#fff', display: 'block' }}
+                onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
+              />
+            ) : <FaUserCircle style={{ width: 44, height: 44 }} />}
           </button>
           {/* Botón de cerrar sesión */}
           <button

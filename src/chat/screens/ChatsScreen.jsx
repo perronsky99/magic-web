@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getUsers, createChat, getChats } from "../api";
 import { useSocket } from "../SocketContext";
+import { API_URL } from '../api';
+import defaultAvatar from '../../assets/user.png';
 
 // Utilidad simple de debounce
 function debounce(fn, delay) {
@@ -9,6 +11,14 @@ function debounce(fn, delay) {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
+}
+
+function getAvatarUrl(avatar) {
+  if (!avatar) return defaultAvatar;
+  if (avatar.startsWith('http')) return avatar;
+  if (avatar.startsWith('data:image')) return avatar; // base64
+  const cleanAvatar = avatar.replace(/^avatar\//, '');
+  return `${API_URL}/api/avatar/${cleanAvatar}`;
 }
 
 // UI para lista de chats y creación de nuevo chat
@@ -136,8 +146,12 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         <button key={normalizedChat._id} onClick={() => {
           onSelectChat(normalizedChat);
         }} style={{ width: '100%', background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 12, padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a', boxShadow: '0 1px 8px #3a8dde08' }}>
-          <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, color: '#3a8dde', fontWeight: 700 }}>
-            {(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}
+          <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, color: '#3a8dde', fontWeight: 700, overflow: 'hidden' }}>
+            {other?.avatar ? (
+              <img src={getAvatarUrl(other.avatar)} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', background: '#fff', display: 'block' }} onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }} />
+            ) : (
+              (other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'
+            )}
           </span>
           <span style={{ flex: 1, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {other?.firstName ? (

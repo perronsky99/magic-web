@@ -179,7 +179,23 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 0 24px 0', margin: 0, display: 'flex', flexDirection: 'column', background: '#fafdff', zIndex: 1 }}>
         {loadingChats ? (
-          <div style={{ color: '#7a8ca3', fontWeight: 500, padding: '48px 0', textAlign: 'center', fontSize: 18, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Cargando chats...</div>
+          <div style={{ width: '100%', maxWidth: 480, margin: '48px auto 0 auto' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18, padding: '14px 18px', borderRadius: 12, background: '#f3f7fb', boxShadow: '0 1px 8px #3a8dde08', border: '1.5px solid #e3eaf2', width: '100%', minHeight: 56 }}>
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(90deg,#e3eaf2 25%,#fafdff 50%,#e3eaf2 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ width: '60%', height: 16, borderRadius: 8, background: 'linear-gradient(90deg,#e3eaf2 25%,#fafdff 50%,#e3eaf2 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
+                  <div style={{ width: '40%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,#e3eaf2 25%,#fafdff 50%,#e3eaf2 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
+                </div>
+              </div>
+            ))}
+            <style>{`
+              @keyframes skeletonShimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+              }
+            `}</style>
+          </div>
         ) : apiError ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafdff' }}>
             <div style={{ color: '#e74c3c', fontWeight: 600, padding: '24px 0', textAlign: 'center', fontSize: 18, marginBottom: 18 }}>{apiError}</div>

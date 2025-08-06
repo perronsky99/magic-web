@@ -148,8 +148,8 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
             ) : (
               <span style={{ fontWeight: 700 }}>{other?.email || 'Usuario'}</span>
             )}
-            {/* {other?._id && onlineUsers.includes(String(other._id)) ? ( */}
-            {true ? (
+            {/* Estado de conexión solo para el otro usuario, nunca para el usuario actual */}
+            {other?._id && String(other._id) !== String(user._id) && onlineUsers.includes(String(other._id)) ? (
               <span style={{ color: '#3ac47d', fontWeight: 600, fontSize: 13, marginTop: 1, letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3ac47d', display: 'inline-block', boxShadow: '0 0 4px #3ac47d88' }} />
                 En línea

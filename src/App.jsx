@@ -2,6 +2,9 @@
 import React from 'react';
 import './App.css';
 import logo from './assets/image.png';
+// Agrego import para el fondo de partículas
+import Particles from 'react-tsparticles';
+import { loadFull } from 'tsparticles';
 import ChatApp from './chat/ChatApp';
 import { API_URL } from './chat/api';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
@@ -211,11 +214,33 @@ function LoginModal({ onClose }) {
 function AppRoutes() {
   const { auth, logout } = useAuth();
   const navigate = useNavigate();
+  // Configuración de partículas mágicas
+  const particlesInit = async (main) => { await loadFull(main); };
+  const particlesOptions = {
+    fullScreen: { enable: false },
+    background: { color: 'transparent' },
+    particles: {
+      number: { value: 60, density: { enable: true, value_area: 800 } },
+      color: { value: ['#00cfff', '#5f4cff', '#caff87', '#fff'] },
+      shape: { type: 'circle' },
+      opacity: { value: 0.25, random: true },
+      size: { value: 3, random: true },
+      move: { enable: true, speed: 1.2, direction: 'none', out_mode: 'out' },
+      links: { enable: true, color: '#3a8dde', opacity: 0.12, width: 1 },
+    },
+    interactivity: {
+      events: { onHover: { enable: true, mode: 'repulse' }, resize: true },
+      modes: { repulse: { distance: 80, duration: 0.4 } },
+    },
+    detectRetina: true,
+  };
   return (
     <Routes>
       {/* Landing pública */}
       <Route path="/" element={
-        <div className="app">
+        <div className="app magic-landing">
+          {/* Fondo de partículas mágicas */}
+          <Particles className="magic-particles" id="tsparticles" init={particlesInit} options={particlesOptions} />
           <header className="header">
             <div className="logo-container">
               <img src={logo} alt="Logo de Magic2k" className="logo" />
@@ -225,35 +250,41 @@ function AppRoutes() {
             </nav>
           </header>
           <main className="hero">
-            <h1>Conectate con <br /> el mundo</h1>
+            <h1 className="magic-title">Conéctate con <br /> el mundo</h1>
             <p className="subtitle">Explorá el futuro de la comunicación en línea.</p>
             <div className="hero-buttons">
-              <button className="btn primary" onClick={() => navigate('/login')}>Empezar ahora</button>
-              <button className="btn secondary">Saber más</button>
+              <button className="btn primary magic-btn" onClick={() => navigate('/login')}>Empezar ahora</button>
+              <button className="btn secondary magic-btn">Saber más</button>
             </div>
           </main>
-          <section className="about">
+          <section className="about magic-card">
             <h2>Sobre nosotros</h2>
             <p>Nos apasiona construir experiencias simples, privadas y potentes para que chatear vuelva a ser algo mágico.</p>
           </section>
-          <section className="features" id="features">
-            <div className="feature">
-              <div className="icon green">⚡</div>
+          <section className="features magic-features" id="features">
+            <div className="feature magic-feature">
+              <div className="icon green">
+                <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><path d="M19 3L22.5 15H35L24.5 23L28 35L19 27L10 35L13.5 23L3 15H15.5L19 3Z" fill="#caff87" stroke="#b6ffb2" strokeWidth="2" /></svg>
+              </div>
               <h3>Mensajería instantánea</h3>
               <p>Chateá en tiempo real con tus amigos, sin interrupciones ni complicaciones.</p>
             </div>
-            <div className="feature">
-              <div className="icon purple">🎥</div>
-              <h3>Llamadas de voz y video</h3>
-              <p>Conectate como si estuvieras ahí, con audio y video de alta calidad.</p>
-            </div>
-            <div className="feature">
-              <div className="icon blue">🛡️</div>
+            <div className="feature magic-feature">
+              <div className="icon blue">
+                <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="16" fill="#00cfff" stroke="#5f4cff" strokeWidth="2" /><path d="M13 19L17 23L25 15" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" /></svg>
+              </div>
               <h3>Privacidad y seguridad</h3>
               <p>Tu información es solo tuya. Protegemos cada mensaje y cada llamada.</p>
             </div>
+            <div className="feature magic-feature">
+              <div className="icon purple">
+                <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><rect x="6" y="10" width="26" height="18" rx="5" fill="#5f4cff" stroke="#00cfff" strokeWidth="2" /><circle cx="19" cy="19" r="4" fill="#fff" /><rect x="12" y="26" width="14" height="3" rx="1.5" fill="#caff87" /></svg>
+              </div>
+              <h3>Llamadas de voz y video</h3>
+              <p>Conectate como si estuvieras ahí, con audio y video de alta calidad.</p>
+            </div>
           </section>
-          <footer className="footer">
+          <footer className="footer magic-footer">
             <p>Hecho con 💙 por vos. Proyecto en desarrollo.</p>
           </footer>
         </div>

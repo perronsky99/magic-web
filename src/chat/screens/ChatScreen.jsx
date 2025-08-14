@@ -178,6 +178,24 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     }
   };
 
+  // Efecto de vibración y onda global al recibir un Tic
+  useEffect(() => {
+    if (!messages.length) return;
+    const last = messages[messages.length - 1];
+    if (last && last.tic) {
+      // Vibrar toda la ventana del chat
+      const mainWindow = document.querySelector('.magic2k-main-window') || document.body;
+      mainWindow.classList.add('tic-vibrate-global');
+      // Onda/destello visual
+      const chatArea = document.getElementById('chat-area');
+      if (chatArea) {
+        chatArea.classList.add('tic-flash');
+        setTimeout(() => chatArea.classList.remove('tic-flash'), 700);
+      }
+      setTimeout(() => mainWindow.classList.remove('tic-vibrate-global'), 700);
+    }
+  }, [messages]);
+
   // Pseudo/nickname editable
   const otherUserId = chat?.otherUser?._id || chat?.otherUser?.id || chat?.otherUser?.userId || chat?.otherUser?.uid;
   const pseudoKey = otherUserId ? `pseudo_${otherUserId}` : null;
@@ -416,6 +434,23 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           }
           .tic-vibrate {
             animation: ticShake 0.6s;
+          }
+          @keyframes ticShakeGlobal {
+            10%, 90% { transform: translate(-2px, 0); }
+            20%, 80% { transform: translate(4px, 0); }
+            30%, 50%, 70% { transform: translate(-12px, 0); }
+            40%, 60% { transform: translate(12px, 0); }
+          }
+          .tic-vibrate-global {
+            animation: ticShakeGlobal 0.7s cubic-bezier(.36,.07,.19,.97) both;
+          }
+          @keyframes ticFlash {
+            0% { box-shadow: 0 0 0 0 #ffe06688; }
+            40% { box-shadow: 0 0 32px 12px #ffe066cc; }
+            100% { box-shadow: 0 0 0 0 #ffe06600; }
+          }
+          .tic-flash {
+            animation: ticFlash 0.7s;
           }
         `}</style>
       </div>

@@ -182,4 +182,13 @@ export async function updateUserProfile({ firstName, lastName, nickname, pseudo,
   return res.json();
 }
 
+export async function markChatAsRead(chatId) {
+  const res = await fetchWithAuth(`${API_URL}/api/chat/message/read/${chatId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('No se pudo marcar como leído');
+  return res.json();
+}
+
 // Puedes agregar aquí funciones para audio, imágenes, etc.

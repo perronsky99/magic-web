@@ -31,6 +31,9 @@ export default function ChatApp({ token, user, onLogout }) {
   // Estado de usuario MSN
   const [userState, setUserState] = useState(() => localStorage.getItem('magic2k_user_state') || 'online');
   useEffect(() => { localStorage.setItem('magic2k_user_state', userState); }, [userState]);
+  // Nickname/mensaje de estado MSN
+  const [userStatusMsg, setUserStatusMsg] = useState(() => localStorage.getItem('magic2k_user_status_msg') || '');
+  useEffect(() => { localStorage.setItem('magic2k_user_status_msg', userStatusMsg); }, [userStatusMsg]);
 
   if (!token) {
     return null; // No mostrar nada si no hay token (el login lo maneja el modal externo)
@@ -95,6 +98,30 @@ export default function ChatApp({ token, user, onLogout }) {
                 </option>
               ))}
             </select>
+            {/* Input de nickname/mensaje de estado */}
+            <input
+              type="text"
+              value={userStatusMsg}
+              onChange={e => setUserStatusMsg(e.target.value.slice(0, 60))}
+              placeholder="Agrega un estado, frase o emoji ✨"
+              style={{
+                marginTop: 6,
+                border: '1.5px solid #e3eaf2',
+                borderRadius: 8,
+                padding: '4px 8px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#3a8dde',
+                background: '#fff',
+                outline: 'none',
+                boxShadow: '0 1px 4px #3a8dde11',
+                textAlign: 'center',
+                width: 80,
+                maxWidth: 120,
+                transition: 'border .2s',
+              }}
+              maxLength={60}
+            />
           </div>
           <button onClick={() => setSection("chats")}
             style={{ background: 'none', border: 'none', marginBottom: 8, cursor: 'pointer', outline: 'none', color: section === "chats" ? '#3a8dde' : '#7a8ca3', fontSize: 28, transition: 'color .2s' }}

@@ -251,77 +251,35 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3a8dde', fontWeight: 700, fontSize: 20 }}>👤</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 10 }}>
-            {chat?.otherUser?.firstName ? (
-              <>
-                {chat.otherUser.firstName} {chat.otherUser.lastName || ''}
-                <span style={{ color: '#7a8ca3', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>{chat.otherUser.email}</span>
-              </>
-            ) : (
-              chat?.otherUser?.email || "Usuario"
-            )}
-            {/* Estado visual del usuario actual */}
+          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 10, flexDirection: 'column', alignItems: 'flex-start' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {chat?.otherUser?.firstName ? (
+                <>
+                  {chat.otherUser.firstName} {chat.otherUser.lastName || ''}
+                  <span style={{ color: '#7a8ca3', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>{chat.otherUser.email}</span>
+                </>
+              ) : (
+                chat?.otherUser?.email || "Usuario"
+              )}
+              {/* Estado visual del usuario actual */}
+              {(() => {
+                const state = localStorage.getItem('magic2k_user_state') || 'online';
+                const s = USER_STATES.find(x => x.key === state);
+                return s ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
+                    {s.label}
+                  </span>
+                ) : null;
+              })()}
+            </span>
+            {/* Nickname/mensaje de estado solo lectura */}
             {(() => {
-              const state = localStorage.getItem('magic2k_user_state') || 'online';
-              const s = USER_STATES.find(x => x.key === state);
-              return s ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
-                  {s.label}
-                </span>
+              const msg = localStorage.getItem('magic2k_user_status_msg') || '';
+              return msg ? (
+                <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg}</span>
               ) : null;
             })()}
-          </div>
-          <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 2, minHeight: 28, display: 'flex', alignItems: 'center', gap: 6 }}>
-            {editingPseudo ? (
-              <input
-                ref={pseudoInputRef}
-                type="text"
-                value={pseudo}
-                maxLength={50}
-                onChange={e => setPseudo(e.target.value)}
-                onBlur={handlePseudoSave}
-                onKeyDown={e => { if (e.key === 'Enter') handlePseudoSave(); }}
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: '#3a8dde',
-                  border: '1.5px solid #e3eaf2',
-                  borderRadius: 8,
-                  padding: '4px 10px',
-                  outline: 'none',
-                  background: '#fafdff',
-                  minWidth: 60,
-                  maxWidth: 220,
-                  boxShadow: '0 1px 4px #3a8dde11',
-                  transition: 'border .2s',
-                }}
-                placeholder="Escribe un pseudo..."
-              />
-            ) : (
-              <span
-                style={{
-                  color: pseudo ? '#3a8dde' : '#b0b8c9',
-                  fontWeight: 600,
-                  fontSize: 15,
-                  cursor: 'pointer',
-                  borderBottom: '1px dashed #3a8dde44',
-                  padding: '2px 4px',
-                  borderRadius: 6,
-                  minWidth: 60,
-                  maxWidth: 220,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  background: pseudo ? '#eaf6ff' : 'transparent',
-                  transition: 'background .2s',
-                }}
-                title="Haz click para editar tu pseudo"
-                onClick={() => setEditingPseudo(true)}
-              >
-                {pseudo || 'Agrega un pseudo, frase o emoji ✨'}
-              </span>
-            )}
           </div>
           <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500 }}>
             {/*{socketError ? 'Desconectado' : 'En línea'} */}

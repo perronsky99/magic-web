@@ -191,4 +191,20 @@ export async function markChatAsRead(chatId) {
   return res.json();
 }
 
+export async function updateStatusMsg(statusMsg) {
+  const res = await fetchWithAuth(`${API_URL}/api/user/status-msg`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ statusMsg })
+  });
+  if (!res.ok) throw new Error('No se pudo actualizar el mensaje de estado');
+  return res.json();
+}
+
+export async function getStatusMsg(userId) {
+  const res = await fetchWithAuth(`${API_URL}/api/user/status-msg/${userId}`);
+  if (!res.ok) throw new Error('No se pudo obtener el mensaje de estado');
+  return res.json();
+}
+
 // Puedes agregar aquí funciones para audio, imágenes, etc.

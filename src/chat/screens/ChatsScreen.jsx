@@ -257,17 +257,26 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px 10px 18px', borderBottom: '1.5px solid #e3eaf2', background: '#fafdff', zIndex: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <h2 style={{ fontWeight: 800, fontSize: 22, color: '#7a8ca3', margin: 0 }}>Chats</h2>
-          <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, background: '#e3eaf2', borderRadius: 8, padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || 'Usuario'}
-            {/* Estado visual */}
+          <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, background: '#e3eaf2', borderRadius: 8, padding: '4px 12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || 'Usuario'}
+              {/* Estado visual */}
+              {(() => {
+                const state = localStorage.getItem('magic2k_user_state') || 'online';
+                const s = USER_STATES.find(x => x.key === state);
+                return s ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
+                    {s.label}
+                  </span>
+                ) : null;
+              })()}
+            </span>
+            {/* Nickname/mensaje de estado */}
             {(() => {
-              const state = localStorage.getItem('magic2k_user_state') || 'online';
-              const s = USER_STATES.find(x => x.key === state);
-              return s ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
-                  {s.label}
-                </span>
+              const msg = localStorage.getItem('magic2k_user_status_msg') || '';
+              return msg ? (
+                <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg}</span>
               ) : null;
             })()}
           </span>

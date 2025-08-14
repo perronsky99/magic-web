@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { loginUser } from "./api";
+import { loginUser, updateStatusMsg } from "./api";
 import logo from '../assets/image.png';
 import ChatsScreen from "./screens/ChatsScreen";
 import GroupsScreen from "./screens/GroupsScreen";
@@ -33,7 +33,13 @@ export default function ChatApp({ token, user, onLogout }) {
   useEffect(() => { localStorage.setItem('magic2k_user_state', userState); }, [userState]);
   // Nickname/mensaje de estado MSN
   const [userStatusMsg, setUserStatusMsg] = useState(() => localStorage.getItem('magic2k_user_status_msg') || '');
-  useEffect(() => { localStorage.setItem('magic2k_user_status_msg', userStatusMsg); }, [userStatusMsg]);
+  useEffect(() => {
+    localStorage.setItem('magic2k_user_status_msg', userStatusMsg);
+    // Sincronizar con backend
+    if (userStatusMsg !== undefined) {
+      updateStatusMsg(userStatusMsg).catch(() => { });
+    }
+  }, [userStatusMsg]);
 
   if (!token) {
     return null; // No mostrar nada si no hay token (el login lo maneja el modal externo)

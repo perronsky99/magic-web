@@ -260,7 +260,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3a8dde', fontWeight: 700, fontSize: 20 }}>👤</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 10, flexDirection: 'column', alignItems: 'flex-start' }}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', gap: 10, flexDirection: 'column', alignItems: 'flex-start' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {chat?.otherUser?.firstName ? (
                 <>

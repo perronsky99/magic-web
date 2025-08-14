@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
-import { getChatMessages, sendMessage, sendImage, sendAudio } from "../api";
+import { getChatMessages, sendMessage, sendImage, sendAudio, getStatusMsg } from "../api";
 import { useSocket } from "../SocketContext";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import defaultAvatar from '../../assets/user.png';
@@ -221,6 +221,15 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setEditingPseudo(false);
   };
 
+  // Nickname real del otro usuario
+  const [otherStatusMsg, setOtherStatusMsg] = useState("");
+  useEffect(() => {
+    const otherId = chat?.otherUser?._id || chat?.otherUser?.id || chat?.otherUser?.userId || chat?.otherUser?.uid;
+    if (otherId) {
+      getStatusMsg(otherId).then(res => setOtherStatusMsg(res.statusMsg || "")).catch(() => setOtherStatusMsg(""));
+    }
+  }, [chat?.otherUser?._id, chat?.otherUser?.id, chat?.otherUser?.userId, chat?.otherUser?.uid]);
+
   const USER_STATES = [
     { key: 'online', label: 'En línea', color: '#3ac47d', icon: '🟢' },
     { key: 'away', label: 'Ausente', color: '#ffe066', icon: '🟡' },
@@ -274,12 +283,9 @@ export default function ChatScreen({ chat, user, token, onBack }) {
               })()}
             </span>
             {/* Nickname/mensaje de estado solo lectura */}
-            {(() => {
-              const msg = localStorage.getItem('magic2k_user_status_msg') || '';
-              return msg ? (
-                <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg}</span>
-              ) : null;
-            })()}
+            {otherStatusMsg ? (
+              <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{otherStatusMsg}</span>
+            ) : null}
           </div>
           <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500 }}>
             {/*{socketError ? 'Desconectado' : 'En línea'} */}

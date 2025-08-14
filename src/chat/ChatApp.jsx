@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { loginUser } from "./api";
 import logo from '../assets/image.png';
 import ChatsScreen from "./screens/ChatsScreen";
@@ -17,10 +17,20 @@ function getAvatarUrl(avatar) {
   return `${API_URL}/api/${avatar.replace(/^\/+/, '')}`;
 }
 
+const USER_STATES = [
+  { key: 'online', label: 'En línea', color: '#3ac47d', icon: '🟢' },
+  { key: 'away', label: 'Ausente', color: '#ffe066', icon: '🟡' },
+  { key: 'busy', label: 'Ocupado', color: '#e74c3c', icon: '🔴' },
+  { key: 'invisible', label: 'Invisible', color: '#b0b8c9', icon: '⚪' },
+];
+
 export default function ChatApp({ token, user, onLogout }) {
   const [section, setSection] = useState("chats"); // chats | groups | profile | chat | groupchat
   const [selectedChat, setSelectedChat] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  // Estado de usuario MSN
+  const [userState, setUserState] = useState(() => localStorage.getItem('magic2k_user_state') || 'online');
+  useEffect(() => { localStorage.setItem('magic2k_user_state', userState); }, [userState]);
 
   if (!token) {
     return null; // No mostrar nada si no hay token (el login lo maneja el modal externo)
@@ -45,8 +55,46 @@ export default function ChatApp({ token, user, onLogout }) {
       }}>
         {/* Sidebar */}
         <div style={{ width: 90, background: 'linear-gradient(180deg,#e3eaf2 0%,#fafdff 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 18, boxShadow: '2px 0 12px #3a8dde11', zIndex: 2 }}>
-          <div style={{ marginBottom: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 54, height: 54 }}>
+          <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 54, height: 54, position: 'relative' }}>
             <img src={logo} alt="Magic2k" style={{ width: 48, height: 48, borderRadius: 12, boxShadow: '0 2px 8px #3a8dde22', background: '#fff', objectFit: 'contain' }} />
+          </div>
+          {/* Avatar y estado */}
+          <div style={{ marginBottom: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            {user?.avatar ? (
+              <img
+                src={getAvatarUrl(user.avatar)}
+                alt="avatar"
+                style={{ width: 44, height: 44, borderRadius: "50%", border: section === "profile" ? '2.5px solid #3a8dde' : '2.5px solid #e3eaf2', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22', background: '#fff', display: 'block' }}
+                onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
+              />
+            ) : <FaUserCircle style={{ width: 44, height: 44 }} />}
+            {/* Selector de estado */}
+            <select
+              value={userState}
+              onChange={e => setUserState(e.target.value)}
+              style={{
+                marginTop: 4,
+                border: '1.5px solid #e3eaf2',
+                borderRadius: 8,
+                padding: '2px 8px',
+                fontSize: 13,
+                fontWeight: 600,
+                color: USER_STATES.find(s => s.key === userState)?.color || '#23263a',
+                background: '#fff',
+                outline: 'none',
+                boxShadow: '0 1px 4px #3a8dde11',
+                textAlign: 'center',
+                cursor: 'pointer',
+                appearance: 'none',
+                minWidth: 80
+              }}
+            >
+              {USER_STATES.map(s => (
+                <option key={s.key} value={s.key} style={{ color: s.color }}>
+                  {s.icon} {s.label}
+                </option>
+              ))}
+            </select>
           </div>
           <button onClick={() => setSection("chats")}
             style={{ background: 'none', border: 'none', marginBottom: 8, cursor: 'pointer', outline: 'none', color: section === "chats" ? '#3a8dde' : '#7a8ca3', fontSize: 28, transition: 'color .2s' }}

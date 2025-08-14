@@ -21,6 +21,13 @@ function getAvatarUrl(avatar) {
   return `${API_URL}/api/avatar/${cleanAvatar}`;
 }
 
+const USER_STATES = [
+  { key: 'online', label: 'En línea', color: '#3ac47d', icon: '🟢' },
+  { key: 'away', label: 'Ausente', color: '#ffe066', icon: '🟡' },
+  { key: 'busy', label: 'Ocupado', color: '#e74c3c', icon: '🔴' },
+  { key: 'invisible', label: 'Invisible', color: '#b0b8c9', icon: '⚪' },
+];
+
 // UI para lista de chats y creación de nuevo chat
 export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile }) {
   const [showModal, setShowModal] = useState(false);
@@ -250,8 +257,19 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px 10px 18px', borderBottom: '1.5px solid #e3eaf2', background: '#fafdff', zIndex: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <h2 style={{ fontWeight: 800, fontSize: 22, color: '#7a8ca3', margin: 0 }}>Chats</h2>
-          <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, background: '#e3eaf2', borderRadius: 8, padding: '4px 12px' }}>
+          <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, background: '#e3eaf2', borderRadius: 8, padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
             {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || 'Usuario'}
+            {/* Estado visual */}
+            {(() => {
+              const state = localStorage.getItem('magic2k_user_state') || 'online';
+              const s = USER_STATES.find(x => x.key === state);
+              return s ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
+                  {s.label}
+                </span>
+              ) : null;
+            })()}
           </span>
         </div>
         <button onClick={() => setShowModal(true)} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 12, padding: '8px 18px', fontWeight: 700, fontSize: 15, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', transition: 'background .2s' }}>+ Nuevo chat</button>

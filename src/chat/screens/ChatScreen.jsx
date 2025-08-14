@@ -221,6 +221,13 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setEditingPseudo(false);
   };
 
+  const USER_STATES = [
+    { key: 'online', label: 'En línea', color: '#3ac47d', icon: '🟢' },
+    { key: 'away', label: 'Ausente', color: '#ffe066', icon: '🟡' },
+    { key: 'busy', label: 'Ocupado', color: '#e74c3c', icon: '🔴' },
+    { key: 'invisible', label: 'Invisible', color: '#b0b8c9', icon: '⚪' },
+  ];
+
   if (loadError) {
     // Solo mostrar error si realmente hubo un error en la petición, no si la lista está vacía
     if (!loading && messages.length === 0) {
@@ -244,7 +251,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3a8dde', fontWeight: 700, fontSize: 20 }}>👤</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 10 }}>
             {chat?.otherUser?.firstName ? (
               <>
                 {chat.otherUser.firstName} {chat.otherUser.lastName || ''}
@@ -253,6 +260,17 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             ) : (
               chat?.otherUser?.email || "Usuario"
             )}
+            {/* Estado visual del usuario actual */}
+            {(() => {
+              const state = localStorage.getItem('magic2k_user_state') || 'online';
+              const s = USER_STATES.find(x => x.key === state);
+              return s ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
+                  {s.label}
+                </span>
+              ) : null;
+            })()}
           </div>
           <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 2, minHeight: 28, display: 'flex', alignItems: 'center', gap: 6 }}>
             {editingPseudo ? (

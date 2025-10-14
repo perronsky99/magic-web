@@ -1,3 +1,31 @@
+// Header responsive con menú hamburguesa
+function HeaderResponsive() {
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  React.useEffect(() => {
+    const close = () => setMenuOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close);
+    return () => {
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close);
+    };
+  }, []);
+  return (
+    <header className="header">
+      <div className="logo-container">
+        <img src={logo} alt="Logo de Magic2k" className="logo" />
+      </div>
+      <button className="nav-toggle" aria-label="Abrir menú" onClick={() => setMenuOpen(o => !o)}>
+        <span style={{display:'block',width:28,height:28}}>
+          <svg width="28" height="28" viewBox="0 0 28 28"><rect y="4" width="28" height="3" rx="1.5" fill="#3a8dde"/><rect y="12.5" width="28" height="3" rx="1.5" fill="#3a8dde"/><rect y="21" width="28" height="3" rx="1.5" fill="#3a8dde"/></svg>
+        </span>
+      </button>
+      <nav className={menuOpen ? 'nav open' : 'nav'} onClick={() => setMenuOpen(false)}>
+        <a href="#features">Características</a>
+      </nav>
+    </header>
+  );
+}
 
 import React from 'react';
 import './App.css';
@@ -241,14 +269,7 @@ function AppRoutes() {
         <div className="app magic-landing">
           {/* Fondo de partículas mágicas */}
           <Particles className="magic-particles" id="tsparticles" init={particlesInit} options={particlesOptions} />
-          <header className="header">
-            <div className="logo-container">
-              <img src={logo} alt="Logo de Magic2k" className="logo" />
-            </div>
-            <nav className="nav">
-              <a href="#features">Características</a>
-            </nav>
-          </header>
+          <HeaderResponsive />
           <main className="hero">
             <h1 className="magic-title">Conéctate con <br /> el mundo</h1>
             <p className="subtitle">Explorá el futuro de la comunicación en línea.</p>

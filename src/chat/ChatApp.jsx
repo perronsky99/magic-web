@@ -48,7 +48,7 @@ export default function ChatApp({ token, user, onLogout }) {
   // Sidebar MSN style
   return (
     <SocketProvider user={user} token={token}>
-      <div style={{
+      <div className="chat-app-main" style={{
         display: 'flex',
         height: '92vh',
         maxWidth: 'min(98vw,1500px)',
@@ -63,7 +63,7 @@ export default function ChatApp({ token, user, onLogout }) {
         transition: 'max-width .3s cubic-bezier(.4,1.4,.6,1)',
       }}>
         {/* Sidebar */}
-        <div style={{ width: 90, background: 'linear-gradient(180deg,#e3eaf2 0%,#fafdff 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 18, boxShadow: '2px 0 12px #3a8dde11', zIndex: 2 }}>
+        <div className="chat-app-sidebar" style={{ width: 90, background: 'linear-gradient(180deg,#e3eaf2 0%,#fafdff 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 18, boxShadow: '2px 0 12px #3a8dde11', zIndex: 2 }}>
           <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 54, height: 54, position: 'relative' }}>
             <img src={logo} alt="Magic2k" style={{ width: 48, height: 48, borderRadius: 12, boxShadow: '0 2px 8px #3a8dde22', background: '#fff', objectFit: 'contain' }} />
           </div>
@@ -161,7 +161,7 @@ export default function ChatApp({ token, user, onLogout }) {
           </button>
         </div>
         {/* Main area */}
-        <div style={{ flex: 1, background: '#fafdff', display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+  <div className="chat-app-mainarea" style={{ flex: 1, background: '#fafdff', display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
           {/* Pantalla de chats */}
           {section === "chats" && (
             <ChatsScreen user={user} token={token}

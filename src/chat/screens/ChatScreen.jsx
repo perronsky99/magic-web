@@ -252,7 +252,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', minHeight: 0 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 24px 14px 18px', borderBottom: '1.5px solid #e3eaf2', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 12px #3a8dde0a', zIndex: 2 }}>
+  <div className="chat-header-sticky" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 24px 14px 18px', borderBottom: '1.5px solid #e3eaf2', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 12px #3a8dde0a', zIndex: 2 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 26, color: '#3a8dde', cursor: 'pointer', marginRight: 6, marginLeft: -4 }} title="Volver">←</button>
         {chat?.otherUser?.avatar ? (
           <img src={getAvatarUrl(chat.otherUser.avatar)} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22' }} />
@@ -318,28 +318,28 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             let content = null;
             if (msg.image) {
               content = (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
+                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
                   <img src={msg.image} alt="img" style={{ maxWidth: 200, maxHeight: 180, borderRadius: 12, objectFit: 'cover', display: 'block' }} />
-                  <span style={{ fontSize: 11, color: '#7a8ca3', marginLeft: 8 }}>{msg.time}</span>
+                  <span className="msg-time">{msg.time}</span>
                 </div>
               );
             } else if (msg.audio) {
               content = (
-                <div style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
+                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
                   <audio src={msg.audio} controls style={{ width: 160 }} />
-                  <span style={{ fontSize: 11, color: '#7a8ca3' }}>{msg.time}</span>
+                  <span className="msg-time">{msg.time}</span>
                 </div>
               );
             } else if (msg.tic) {
               content = (
-                <div style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
+                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
                   <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
-                  <span style={{ fontSize: 11, color: '#23263a', marginLeft: 8 }}>{msg.time}</span>
+                  <span className="msg-time">{msg.time}</span>
                 </div>
               );
             } else if (msg.text) {
               content = (
-                <div style={{
+                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{
                   background: bubbleColor,
                   color: textColor,
                   borderRadius: 18,
@@ -362,7 +362,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                   transition: 'background .2s',
                 }}>
                   {msg.text}
-                  <span style={{ fontSize: 11, color: isMine ? '#eaf2ffb0' : '#7a8ca3', marginLeft: 8, marginRight: -4, position: 'absolute', bottom: 4, right: 10 }}>{msg.time}</span>
+                  <span className="msg-time">{msg.time}</span>
                   {/* Pico de la burbuja */}
                   <span style={{
                     content: '""',
@@ -383,7 +383,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             } else {
               // Fallback visual para mensajes inesperados
               content = (
-                <div style={{ background: '#ffeded', color: '#c0392b', borderRadius: 14, padding: '10px 16px', fontWeight: 600, fontSize: 15, marginBottom: 8, border: '1.5px solid #e57373', alignSelf: align }}>
+                <div className="chat-bubble other" style={{ background: '#ffeded', color: '#c0392b', borderRadius: 14, padding: '10px 16px', fontWeight: 600, fontSize: 15, marginBottom: 8, border: '1.5px solid #e57373', alignSelf: align }}>
                   [Mensaje no soportado]
                 </div>
               );
@@ -438,20 +438,22 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       </div>
 
       {/* Input de mensaje */}
-      <ChatMessageInput
-        onSend={handleSend}
-        onSendImage={handleSendImage}
-        onSendAudio={handleSendAudio}
-        onSendTic={handleSendTic}
-        onTyping={() => {
-          if (socket && chat?._id && user) {
-            const nombre = user.firstName || user.email || "Usuario";
-            socket.emit("typing", { roomId: chat._id, user: nombre });
-          }
-        }}
-        loading={loading}
-        user={user}
-      />
+      <div className="chat-input-bar">
+        <ChatMessageInput
+          onSend={handleSend}
+          onSendImage={handleSendImage}
+          onSendAudio={handleSendAudio}
+          onSendTic={handleSendTic}
+          onTyping={() => {
+            if (socket && chat?._id && user) {
+              const nombre = user.firstName || user.email || "Usuario";
+              socket.emit("typing", { roomId: chat._id, user: nombre });
+            }
+          }}
+          loading={loading}
+          user={user}
+        />
+      </div>
     </div>
   );
 }

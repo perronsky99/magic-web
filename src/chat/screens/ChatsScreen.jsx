@@ -3,6 +3,7 @@ import { getUsers, createChat, getChats, markChatAsRead } from "../api";
 import { useSocket } from "../SocketContext";
 import { API_URL } from '../api';
 import defaultAvatar from '../../assets/user.png';
+import { FaPlus, FaCircle } from "react-icons/fa";
 
 // Utilidad simple de debounce
 function debounce(fn, delay) {
@@ -135,7 +136,7 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
     }
   };
 
-  // Memoizar la lista de chats renderizada
+  // Rediseño profesional y minimalista de la lista de chats
   const chatList = useMemo(() => (
     chats.map(chat => {
       let participants = chat.participants;
@@ -149,101 +150,61 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         _id: chat._id || chat.id,
         otherUser: other
       };
+      const isOnline = other?._id && String(other._id) !== String(user._id) && onlineUsers.includes(String(other._id));
       return (
         <button key={normalizedChat._id} onClick={async () => {
-          // Marcar como leído en backend y actualizar localmente
           try {
             if (normalizedChat.unread_count > 0) {
               await markChatAsRead(normalizedChat._id);
               setChats(prev => prev.map(c => c._id === normalizedChat._id ? { ...c, unread_count: 0 } : c));
             }
-          } catch (e) { /* opcional: feedback de error */ }
+          } catch (e) {}
           onSelectChat(normalizedChat);
-        }} style={{ width: '100%', background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 12, padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a', boxShadow: '0 1px 8px #3a8dde08' }}>
-          <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, color: '#3a8dde', fontWeight: 700, overflow: 'hidden', position: 'relative' }}>
+        }}
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.82)',
+            border: isOnline ? '2.5px solid #3ac47d' : '2px solid #e3eaf2',
+            borderRadius: 24,
+            padding: '18px 28px',
+            marginBottom: 22,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 22,
+            cursor: 'pointer',
+            transition: 'box-shadow .18s, transform .18s',
+            fontWeight: 600,
+            color: '#23263a',
+            boxShadow: normalizedChat.unread_count > 0 ? '0 12px 48px #00cfff33' : '0 4px 32px #3a8dde0a',
+            backdropFilter: 'blur(14px)',
+            position: 'relative',
+            minHeight: 88,
+            fontFamily: 'Inter, Roboto, system-ui',
+          }}
+          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 20px 64px #00cfff44'}
+          onMouseLeave={e => e.currentTarget.style.boxShadow = normalizedChat.unread_count > 0 ? '0 12px 48px #00cfff33' : '0 4px 32px #3a8dde0a'}
+        >
+          {/* Avatar */}
+          <span style={{ position: 'relative', marginRight: 8 }}>
             {other?.avatar ? (
-              <img src={getAvatarUrl(other.avatar)} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', background: '#fff', display: 'block' }} onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }} />
+              <img src={getAvatarUrl(other.avatar)} alt="avatar" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', background: '#fff', display: 'block', boxShadow: '0 2px 12px #3a8dde22', border: isOnline ? '3px solid #3ac47d' : '3px solid #e3eaf2', transition: 'border .18s' }} onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }} />
             ) : (
-              (other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'
+              <span style={{ width: 56, height: 56, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: '#3a8dde', fontWeight: 700 }}>{(other?.firstName && other.firstName[0]) || (other?.email && other.email[0]) || '?'}</span>
             )}
+            {/* Estado online */}
+            {isOnline && <FaCircle style={{ position: 'absolute', bottom: 4, right: 4, color: '#3ac47d', fontSize: 18, background: '#fff', borderRadius: '50%', border: '2px solid #fff' }} />}
           </span>
+          {/* Info */}
           <span style={{ flex: 1, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2, position: 'relative' }}>
-            {other?.firstName ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontWeight: 700 }}>{other.firstName} {other.lastName || ''}</span>
-                {/* Badge al lado del nombre/correo */}
-                {chat.unread_count > 0 && (
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: 18,
-                    height: 18,
-                    background: 'linear-gradient(135deg, #ff6a6a 60%, #ffb199 100%)',
-                    color: '#fff',
-                    borderRadius: '9px',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    fontFamily: 'Inter, Arial, sans-serif',
-                    boxShadow: '0 2px 6px #ff6a6a33',
-                    border: '1.5px solid #fff',
-                    zIndex: 2,
-                    padding: chat.unread_count > 9 ? '0 7px' : '0 6px',
-                    lineHeight: 1,
-                    letterSpacing: 0.1,
-                    marginLeft: 6,
-                    transition: 'min-width 0.2s, padding 0.2s',
-                    pointerEvents: 'none',
-                    userSelect: 'none',
-                    boxSizing: 'border-box',
-                  }}>
-                    {chat.unread_count > 99 ? '99+' : chat.unread_count}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontWeight: 700 }}>{other?.email || 'Usuario'}</span>
-                {chat.unread_count > 0 && (
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: 18,
-                    height: 18,
-                    background: 'linear-gradient(135deg, #ff6a6a 60%, #ffb199 100%)',
-                    color: '#fff',
-                    borderRadius: '9px',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    fontFamily: 'Inter, Arial, sans-serif',
-                    boxShadow: '0 2px 6px #ff6a6a33',
-                    border: '1.5px solid #fff',
-                    zIndex: 2,
-                    padding: chat.unread_count > 9 ? '0 7px' : '0 6px',
-                    lineHeight: 1,
-                    letterSpacing: 0.1,
-                    marginLeft: 6,
-                    transition: 'min-width 0.2s, padding 0.2s',
-                    pointerEvents: 'none',
-                    userSelect: 'none',
-                    boxSizing: 'border-box',
-                  }}>
-                    {chat.unread_count > 99 ? '99+' : chat.unread_count}
-                  </span>
-                )}
-              </div>
-            )}
-            {/* Estado de conexión solo para el otro usuario, nunca para el usuario actual */}
-            {other?._id && String(other._id) !== String(user._id) && onlineUsers.includes(String(other._id)) ? (
-              <span style={{ color: '#3ac47d', fontWeight: 600, fontSize: 13, marginTop: 1, letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3ac47d', display: 'inline-block', boxShadow: '0 0 4px #3ac47d88' }} />
-                En línea
-              </span>
-            ) : (
-              <span style={{ color: '#7a8ca3', fontWeight: 600, fontSize: 13, marginTop: 1, letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e3eaf2', display: 'inline-block', boxShadow: '0 0 4px #7a8ca344' }} />
-                Desconectado
+            <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1c3a', letterSpacing: 0.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'Inter, Roboto, system-ui' }}>{other?.firstName || other?.email || 'Usuario'}</span>
+            <span style={{ color: '#6b7280', fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500, fontFamily: 'Inter, Roboto, system-ui' }}>{normalizedChat.last_message_text || 'Sin mensajes'}</span>
+          </span>
+          {/* Hora y badge */}
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 70 }}>
+            <span style={{ color: '#a0aec0', fontSize: 13, fontWeight: 600, fontFamily: 'Inter, Roboto, system-ui' }}>{normalizedChat.last_message_date ? new Date(normalizedChat.last_message_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+            {normalizedChat.unread_count > 0 && (
+              <span style={{ marginTop: 8, background: 'linear-gradient(90deg,#00cfff 60%,#3a8dde 100%)', color: '#fff', borderRadius: 14, fontWeight: 800, fontSize: 15, minWidth: 28, minHeight: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px #00cfff44', padding: '0 10px', letterSpacing: 0.5, fontFamily: 'Inter, Roboto, system-ui', border: '2px solid #fff' }}>
+                {normalizedChat.unread_count > 99 ? '99+' : normalizedChat.unread_count}
               </span>
             )}
           </span>

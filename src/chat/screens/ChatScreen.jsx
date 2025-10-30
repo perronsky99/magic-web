@@ -250,17 +250,107 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'transparent', minHeight: 0 }}>
-      {/* Header */}
-  <div className="chat-header-sticky" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 24px 14px 18px', borderBottom: '1.5px solid #e3eaf2', background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 12px #3a8dde0a', zIndex: 2 }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 26, color: '#3a8dde', cursor: 'pointer', marginRight: 6, marginLeft: -4 }} title="Volver">←</button>
+    <div
+      className="chat-screen-glass"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        background: 'linear-gradient(120deg, #fafdff 60%, #e3eaf2 100%)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        boxShadow: '0 8px 32px 0 #3a8dde22',
+        borderRadius: 24,
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      {/* Header sticky con avatar grande y glassmorphism */}
+      <div
+        className="chat-header-sticky"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 18,
+          padding: '22px 32px 16px 22px',
+          borderBottom: '1.5px solid #e3eaf2',
+          background: 'rgba(255,255,255,0.85)',
+          boxShadow: '0 2px 16px #3a8dde0a',
+          zIndex: 2,
+          position: 'sticky',
+          top: 0,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
+      >
+        <button
+          onClick={onBack}
+          style={{
+            background: 'none',
+            border: 'none',
+            fontSize: 28,
+            color: '#3a8dde',
+            cursor: 'pointer',
+            marginRight: 8,
+            marginLeft: -4,
+            borderRadius: 8,
+            padding: 4,
+            transition: 'background .15s',
+          }}
+          title="Volver"
+          aria-label="Volver"
+        >
+          ←
+        </button>
         {chat?.otherUser?.avatar ? (
-          <img src={getAvatarUrl(chat.otherUser.avatar)} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22' }} />
+          <img
+            src={getAvatarUrl(chat.otherUser.avatar)}
+            alt="avatar"
+            style={{
+              width: 54,
+              height: 54,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              boxShadow: '0 2px 12px #3a8dde22',
+              border: '2.5px solid #e3eaf2',
+              background: '#fff',
+            }}
+          />
         ) : (
-          <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3a8dde', fontWeight: 700, fontSize: 20 }}>👤</div>
+          <div
+            style={{
+              width: 54,
+              height: 54,
+              borderRadius: '50%',
+              background: '#e3eaf2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#3a8dde',
+              fontWeight: 700,
+              fontSize: 28,
+              boxShadow: '0 2px 12px #3a8dde22',
+            }}
+          >
+            👤
+          </div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', gap: 10, flexDirection: 'column', alignItems: 'flex-start' }}>
+          <div
+            style={{
+              fontWeight: 800,
+              fontSize: 20,
+              color: '#23263a',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: 'flex',
+              gap: 10,
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+            }}
+          >
             <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {chat?.otherUser?.firstName ? (
                 <>
@@ -284,17 +374,29 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             </span>
             {/* Nickname/mensaje de estado solo lectura */}
             {otherStatusMsg ? (
-              <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{otherStatusMsg}</span>
+              <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{otherStatusMsg}</span>
             ) : null}
-          </div>
-          <div style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500 }}>
-            {/*{socketError ? 'Desconectado' : 'En línea'} */}
           </div>
         </div>
       </div>
 
-      {/* Mensajes */}
-      <div id="chat-area" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '28px 0 18px 0', background: 'linear-gradient(120deg,#fafdff 60%,#e3eaf2 100%)', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow .2s', boxSizing: 'border-box', width: '100%' }}>
+      {/* Mensajes con fondo glass y burbujas modernas */}
+      <div
+        id="chat-area"
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: '36px 0 22px 0',
+          background: 'linear-gradient(120deg,#fafdff 60%,#e3eaf2 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          transition: 'box-shadow .2s',
+          boxSizing: 'border-box',
+          width: '100%',
+        }}
+      >
         <TransitionGroup>
           {messages.map((msg, idx) => {
             const myId = user && (user._id || user.id || user.uid || user.idUser) ? String(user._id || user.id || user.uid || user.idUser) : '';
@@ -307,83 +409,150 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             );
             const isMine = myId && msgFrom && myId === msgFrom;
             const key = msg.id ? String(msg.id) : `${idx}`;
-            // refs persistentes por id
             if (!messageRefs.current[key]) messageRefs.current[key] = React.createRef();
-            // Colores Magic2k
-            const bubbleColor = isMine ? 'var(--primary)' : '#fff';
+            // Colores y glassmorphism
+            const bubbleColor = isMine ? 'rgba(58,141,222,0.92)' : 'rgba(255,255,255,0.85)';
             const textColor = isMine ? '#fff' : '#23263a';
-            const borderColor = isMine ? 'var(--primary)' : '#e3eaf2';
+            const borderColor = isMine ? 'rgba(58,141,222,0.22)' : '#e3eaf2';
             const align = isMine ? 'flex-end' : 'flex-start';
-            // Normalización y fallback
             let content = null;
             if (msg.image) {
               content = (
-                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: 4, boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
-                  <img src={msg.image} alt="img" style={{ maxWidth: 200, maxHeight: 180, borderRadius: 12, objectFit: 'cover', display: 'block' }} />
-                  <span className="msg-time">{msg.time}</span>
+                <div
+                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
+                  style={{
+                    background: 'rgba(255,255,255,0.92)',
+                    border: '1.5px solid #e3eaf2',
+                    borderRadius: 18,
+                    padding: 6,
+                    boxShadow: isMine ? '0 2px 12px #3a8dde33' : '0 2px 8px #3a8dde11',
+                    maxWidth: 260,
+                    alignSelf: align,
+                    marginBottom: 10,
+                    marginRight: isMine ? 22 : 0,
+                    marginLeft: !isMine ? 32 : 0,
+                  }}
+                >
+                  <img src={msg.image} alt="img" style={{ maxWidth: 220, maxHeight: 180, borderRadius: 14, objectFit: 'cover', display: 'block' }} />
+                  <span className="msg-time" style={{ fontSize: 12, color: '#7a8ca3', marginLeft: 6 }}>{msg.time}</span>
                 </div>
               );
             } else if (msg.audio) {
               content = (
-                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 16, padding: '8px 12px', boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11', display: 'flex', alignItems: 'center', gap: 8, maxWidth: 220, alignSelf: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
-                  <audio src={msg.audio} controls style={{ width: 160 }} />
-                  <span className="msg-time">{msg.time}</span>
+                <div
+                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
+                  style={{
+                    background: 'rgba(255,255,255,0.92)',
+                    border: '1.5px solid #e3eaf2',
+                    borderRadius: 18,
+                    padding: '10px 14px',
+                    boxShadow: isMine ? '0 2px 12px #3a8dde33' : '0 2px 8px #3a8dde11',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    maxWidth: 260,
+                    alignSelf: align,
+                    marginBottom: 10,
+                    marginRight: isMine ? 22 : 0,
+                    marginLeft: !isMine ? 32 : 0,
+                  }}
+                >
+                  <audio src={msg.audio} controls style={{ width: 180 }} />
+                  <span className="msg-time" style={{ fontSize: 12, color: '#7a8ca3', marginLeft: 6 }}>{msg.time}</span>
                 </div>
               );
             } else if (msg.tic) {
               content = (
-                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{ background: 'var(--accent)', color: '#23263a', borderRadius: 18, padding: '10px 18px', fontWeight: 700, boxShadow: '0 2px 8px #caff8733', fontSize: 16, letterSpacing: 1, animation: 'ticShake .6s', display: 'flex', alignItems: 'center', gap: 8, alignSelf: align, justifyContent: align, marginBottom: 8, marginRight: isMine ? 18 : 0, marginLeft: !isMine ? 28 : 0 }}>
+                <div
+                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
+                  style={{
+                    background: 'rgba(255,255,255,0.92)',
+                    color: '#23263a',
+                    borderRadius: 20,
+                    padding: '12px 22px',
+                    fontWeight: 700,
+                    boxShadow: '0 2px 12px #ffe06633',
+                    fontSize: 17,
+                    letterSpacing: 1,
+                    animation: 'ticShake .6s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    alignSelf: align,
+                    justifyContent: align,
+                    marginBottom: 10,
+                    marginRight: isMine ? 22 : 0,
+                    marginLeft: !isMine ? 32 : 0,
+                  }}
+                >
                   <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
-                  <span className="msg-time">{msg.time}</span>
+                  <span className="msg-time" style={{ fontSize: 12, color: '#7a8ca3', marginLeft: 6 }}>{msg.time}</span>
                 </div>
               );
             } else if (msg.text) {
               content = (
-                <div className={`chat-bubble ${isMine ? 'me' : 'other'}`} style={{
-                  background: bubbleColor,
-                  color: textColor,
-                  borderRadius: 18,
-                  borderBottomRightRadius: isMine ? 4 : 18,
-                  borderBottomLeftRadius: isMine ? 18 : 4,
-                  padding: '12px 18px',
-                  fontSize: 16,
-                  fontWeight: 500,
-                  boxShadow: isMine ? '0 2px 8px #00cfff33' : '0 2px 8px #3a8dde11',
-                  maxWidth: 340,
-                  minWidth: 36,
-                  wordBreak: 'break-word',
-                  position: 'relative',
-                  marginBottom: 8,
-                  marginLeft: isMine ? 24 : 28,
-                  marginRight: isMine ? 18 : 0,
-                  alignSelf: align,
-                  border: `2px solid ${borderColor}`,
-                  opacity: 0.98,
-                  transition: 'background .2s',
-                }}>
+                <div
+                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
+                  style={{
+                    background: bubbleColor,
+                    color: textColor,
+                    borderRadius: 20,
+                    borderBottomRightRadius: isMine ? 6 : 20,
+                    borderBottomLeftRadius: isMine ? 20 : 6,
+                    padding: '14px 22px',
+                    fontSize: 17,
+                    fontWeight: 500,
+                    boxShadow: isMine ? '0 2px 12px #3a8dde33' : '0 2px 8px #3a8dde11',
+                    maxWidth: 400,
+                    minWidth: 36,
+                    wordBreak: 'break-word',
+                    position: 'relative',
+                    marginBottom: 10,
+                    marginLeft: isMine ? 28 : 32,
+                    marginRight: isMine ? 22 : 0,
+                    alignSelf: align,
+                    border: `2px solid ${borderColor}`,
+                    opacity: 0.98,
+                    transition: 'background .2s',
+                  }}
+                >
                   {msg.text}
-                  <span className="msg-time">{msg.time}</span>
+                  <span className="msg-time" style={{ fontSize: 12, color: '#e3eaf2', marginLeft: 12, fontWeight: 400, opacity: 0.8 }}>{msg.time}</span>
                   {/* Pico de la burbuja */}
-                  <span style={{
-                    content: '""',
-                    position: 'absolute',
-                    bottom: 0,
-                    ...(isMine ? { right: -10 } : { left: -10 }),
-                    width: 0,
-                    height: 0,
-                    borderTop: '10px solid transparent',
-                    borderBottom: '10px solid transparent',
-                    borderLeft: isMine ? '10px solid var(--primary)' : 'none',
-                    borderRight: !isMine ? '10px solid #fff' : 'none',
-                    zIndex: 1,
-                    display: 'inline-block',
-                  }} />
+                  <span
+                    style={{
+                      content: '""',
+                      position: 'absolute',
+                      bottom: 0,
+                      ...(isMine ? { right: -10 } : { left: -10 }),
+                      width: 0,
+                      height: 0,
+                      borderTop: '10px solid transparent',
+                      borderBottom: '10px solid transparent',
+                      borderLeft: isMine ? '10px solid rgba(58,141,222,0.92)' : 'none',
+                      borderRight: !isMine ? '10px solid rgba(255,255,255,0.85)' : 'none',
+                      zIndex: 1,
+                      display: 'inline-block',
+                    }}
+                  />
                 </div>
               );
             } else {
-              // Fallback visual para mensajes inesperados
               content = (
-                <div className="chat-bubble other" style={{ background: '#ffeded', color: '#c0392b', borderRadius: 14, padding: '10px 16px', fontWeight: 600, fontSize: 15, marginBottom: 8, border: '1.5px solid #e57373', alignSelf: align }}>
+                <div
+                  className="chat-bubble other"
+                  style={{
+                    background: '#ffeded',
+                    color: '#c0392b',
+                    borderRadius: 16,
+                    padding: '12px 18px',
+                    fontWeight: 600,
+                    fontSize: 15,
+                    marginBottom: 10,
+                    border: '1.5px solid #e57373',
+                    alignSelf: align,
+                  }}
+                >
                   [Mensaje no soportado]
                 </div>
               );
@@ -391,8 +560,17 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             if (!content) return null;
             return (
               <CSSTransition key={key} timeout={320} classNames="msg-bubble" nodeRef={messageRefs.current[key]}>
-                <div ref={messageRefs.current[key]} style={{ display: 'flex', justifyContent: align, width: '100%', boxSizing: 'border-box', overflowX: 'visible' }}>
-                  <div style={{ maxWidth: '70vw', minWidth: 0, width: 'fit-content', boxSizing: 'border-box', margin: 0, padding: 0 }}>
+                <div
+                  ref={messageRefs.current[key]}
+                  style={{
+                    display: 'flex',
+                    justifyContent: align,
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    overflowX: 'visible',
+                  }}
+                >
+                  <div style={{ maxWidth: '80vw', minWidth: 0, width: 'fit-content', boxSizing: 'border-box', margin: 0, padding: 0 }}>
                     {content}
                   </div>
                 </div>
@@ -401,7 +579,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           })}
         </TransitionGroup>
         {typingUser && (
-          <div style={{ color: '#7a8ca3', fontSize: 15, fontWeight: 500, marginLeft: 32, marginBottom: 8, fontStyle: 'italic', transition: 'opacity .2s' }}>
+          <div style={{ color: '#7a8ca3', fontSize: 15, fontWeight: 500, marginLeft: 36, marginBottom: 10, fontStyle: 'italic', transition: 'opacity .2s' }}>
             {`${typingUser} está escribiendo...`}
           </div>
         )}
@@ -437,8 +615,21 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         `}</style>
       </div>
 
-      {/* Input de mensaje */}
-      <div className="chat-input-bar">
+      {/* Input de mensaje minimalista y fijo */}
+      <div
+        className="chat-input-bar"
+        style={{
+          background: 'rgba(255,255,255,0.92)',
+          borderTop: '1.5px solid #e3eaf2',
+          boxShadow: '0 -2px 12px #3a8dde0a',
+          padding: '14px 18px 14px 18px',
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 2,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
+      >
         <ChatMessageInput
           onSend={handleSend}
           onSendImage={handleSendImage}

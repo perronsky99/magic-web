@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { FaPaperPlane, FaMicrophone, FaImage, FaBolt } from "react-icons/fa";
 
 export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onSendTic, loading, onTyping }) {
   const [input, setInput] = useState("");
   const fileInputRef = useRef();
+  const inputRef = useRef();
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef();
   const audioChunksRef = useRef([]);
@@ -14,8 +15,23 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
     if (input.trim()) {
       onSend(input);
       setInput("");
+      setTimeout(() => {
+        if (inputRef.current) inputRef.current.focus();
+      }, 80);
     }
   };
+
+  // Enfocar input al montar el componente
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+  }, []);
+
+  // Siempre enfoca el input cuando se limpia tras enviar
+  useEffect(() => {
+    if (input === "" && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [input]);
 
   // Enviar imagen
   const handleImage = e => {
@@ -135,6 +151,7 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
         <FaMicrophone />
       </button>
       <input
+        ref={inputRef}
         type="text"
         value={input}
         onChange={e => {

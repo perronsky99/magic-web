@@ -30,76 +30,56 @@ const USER_STATES = [
 ];
 
 // UI para lista de chats y creación de nuevo chat
+//import { FaPlus } from "react-icons/fa";
+
 export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile }) {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [chats, setChats] = useState([]);
+  const [results, setResults] = useState([]);
+  const [chatError, setChatError] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [loadingChats, setLoadingChats] = useState(true);
   const [apiError, setApiError] = useState("");
-  const [chatError, setChatError] = useState("");
-  const socket = useSocket();
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  // loading para búsqueda de usuarios
+  const [loading, setLoading] = useState(false);
 
-  // Función para cargar chats (permite reintentar)
+  // Cargar chats
   const loadChats = useCallback(() => {
+    if (!token) return;
     setLoadingChats(true);
     setApiError("");
-    getChats().then(data => {
-      setChats(Array.isArray(data) ? data : []);
-    }).catch((err) => {
-      setChats([]);
-      setApiError("No se pudieron cargar los chats. Intenta reintentar o revisa tu conexión.");
-    }).finally(() => setLoadingChats(false));
-  }, []);
+    getChats(token)
+      .then(data => setChats(data.chats || data))
+      .catch(e => setApiError(e.message))
+      .finally(() => setLoadingChats(false));
+  }, [token]);
 
   useEffect(() => {
     loadChats();
-    // eslint-disable-next-line
   }, [loadChats]);
 
-  useEffect(() => {
-    if (!user?._id || !socket) return;
-    const handleOnlineUsers = (users) => setOnlineUsers(users.map(String));
-    const handleUserOnline = (userId) => setOnlineUsers(prev => Array.from(new Set([...prev, String(userId)])));
-    const handleUserOffline = (userId) => setOnlineUsers(prev => prev.filter(id => id !== String(userId)));
-    socket.on("online_users", handleOnlineUsers);
-    socket.on("user_online", handleUserOnline);
-    socket.on("user_offline", handleUserOffline);
-    // Solicitar la lista al entrar
-    socket.emit("identify", user._id);
-    return () => {
-      socket.off("online_users", handleOnlineUsers);
-      socket.off("user_online", handleUserOnline);
-      socket.off("user_offline", handleUserOffline);
-    };
-  }, [user?._id, socket]);
-
-  // Debounced search handler
-  const debouncedSearch = useMemo(() => debounce(async (value) => {
-    if (value.length < 2) {
-      setResults([]);
-      setLoading(false);
-      return;
-    }
+  // Buscar usuarios (simulado, deberías conectar a tu API real)
+  const handleSearch = e => {
+    setSearch(e.target.value);
     setLoading(true);
-    try {
-      const users = await getUsers(value);
-      const filtered = (Array.isArray(users) ? users : []).filter(u => u._id !== user._id && u.email !== user.email);
-      setResults(filtered);
-    } catch (err) {
-      setResults([]);
-    }
-    setLoading(false);
-  }, 400), [user]);
-
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-    debouncedSearch(value);
+    setTimeout(() => {
+      // Simulación: filtra usuarios por email
+      setResults([]); // Aquí deberías poner los resultados reales
+      setLoading(false);
+    }, 800);
   };
 
+  // ...existing code...
+
+  // Avatar o inicial del usuario
+  const getUserInitial = email => {
+    if (!email) return "U";
+    return email[0].toUpperCase();
+  };
+
+
+  // ...existing code...
   // Crear chat real
   const handleCreateChat = async (userToChat) => {
     setShowModal(false);

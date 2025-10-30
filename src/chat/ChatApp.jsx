@@ -63,39 +63,60 @@ export default function ChatApp({ token, user, onLogout }) {
         transition: 'max-width .3s cubic-bezier(.4,1.4,.6,1)',
       }}>
         {/* Sidebar */}
-        <div className="chat-app-sidebar" style={{ width: 90, background: 'linear-gradient(180deg,#e3eaf2 0%,#fafdff 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 18, boxShadow: '2px 0 12px #3a8dde11', zIndex: 2 }}>
-          <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 54, height: 54, position: 'relative' }}>
-            <img src={logo} alt="Magic2k" style={{ width: 48, height: 48, borderRadius: 12, boxShadow: '0 2px 8px #3a8dde22', background: '#fff', objectFit: 'contain' }} />
+        <div className="chat-app-sidebar" style={{
+          width: 148,
+          minWidth: 148,
+          background: 'rgba(255,255,255,0.55)',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+          borderRight: '2.5px solid #e3eaf2',
+          borderRadius: '32px',
+          margin: '14px 0 14px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '32px 0 24px 0',
+          gap: 32,
+          boxShadow: '0 8px 48px #3a8dde22, 0 1.5px 0 #e3eaf2',
+          zIndex: 10,
+          transition: 'all .25s cubic-bezier(.4,1.4,.6,1)',
+        }}>
+          <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, position: 'relative', background: 'rgba(255,255,255,0.7)', borderRadius: 22, boxShadow: '0 4px 24px #3a8dde22' }}>
+            <img src={logo} alt="Magic2k" style={{ width: 68, height: 68, borderRadius: 18, boxShadow: '0 2px 12px #3a8dde22', background: '#fff', objectFit: 'contain', transition: 'box-shadow .2s' }} />
           </div>
           {/* Avatar y estado */}
-          <div style={{ marginBottom: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            {user?.avatar ? (
-              <img
-                src={getAvatarUrl(user.avatar)}
-                alt="avatar"
-                style={{ width: 44, height: 44, borderRadius: "50%", border: section === "profile" ? '2.5px solid #3a8dde' : '2.5px solid #e3eaf2', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22', background: '#fff', display: 'block' }}
-                onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
-              />
-            ) : <FaUserCircle style={{ width: 44, height: 44 }} />}
-            {/* Selector de estado */}
+          <div style={{ marginBottom: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>
+            <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto', boxShadow: '0 2px 16px #3a8dde33', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'box-shadow .2s' }}>
+              {user?.avatar ? (
+                <img
+                  src={getAvatarUrl(user.avatar)}
+                  alt="avatar"
+                  style={{ width: 66, height: 66, borderRadius: "50%", border: section === "profile" ? '3px solid #3a8dde' : '3px solid #e3eaf2', objectFit: 'cover', background: '#fff', display: 'block', transition: 'border .2s' }}
+                  onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
+                />
+              ) : <FaUserCircle style={{ width: 66, height: 66, color: '#b0b8c9' }} />}
+              {/* Glow animado si online */}
+              {userState === 'online' && <span style={{ position: 'absolute', bottom: 6, right: 6, width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle,#3ac47d 60%,#fff0 100%)', boxShadow: '0 0 10px #3ac47d88', border: '2.5px solid #fff' }} />}
+            </div>
             <select
               value={userState}
               onChange={e => setUserState(e.target.value)}
               style={{
-                marginTop: 4,
-                border: '1.5px solid #e3eaf2',
-                borderRadius: 8,
-                padding: '2px 8px',
-                fontSize: 13,
-                fontWeight: 600,
+                marginTop: 2,
+                border: 'none',
+                borderRadius: 12,
+                padding: '8px 0',
+                fontSize: 17,
+                fontWeight: 700,
                 color: USER_STATES.find(s => s.key === userState)?.color || '#23263a',
-                background: '#fff',
+                background: 'rgba(245,250,255,0.85)',
                 outline: 'none',
-                boxShadow: '0 1px 4px #3a8dde11',
+                boxShadow: '0 1px 8px #3a8dde11',
                 textAlign: 'center',
                 cursor: 'pointer',
                 appearance: 'none',
-                minWidth: 80
+                minWidth: 110,
+                transition: 'background .2s',
               }}
             >
               {USER_STATES.map(s => (
@@ -104,61 +125,125 @@ export default function ChatApp({ token, user, onLogout }) {
                 </option>
               ))}
             </select>
-            {/* Input de nickname/mensaje de estado */}
             <input
               type="text"
               value={userStatusMsg}
               onChange={e => setUserStatusMsg(e.target.value.slice(0, 60))}
               placeholder="Agrega un estado, frase o emoji ✨"
               style={{
-                marginTop: 6,
-                border: '1.5px solid #e3eaf2',
-                borderRadius: 8,
-                padding: '4px 8px',
-                fontSize: 13,
+                marginTop: 8,
+                border: 'none',
+                borderRadius: 12,
+                padding: '10px 14px',
+                fontSize: 16,
                 fontWeight: 500,
                 color: '#3a8dde',
-                background: '#fff',
+                background: 'rgba(245,250,255,0.85)',
                 outline: 'none',
-                boxShadow: '0 1px 4px #3a8dde11',
+                boxShadow: '0 1px 8px #3a8dde11',
                 textAlign: 'center',
-                width: 80,
-                maxWidth: 120,
-                transition: 'border .2s',
+                width: 120,
+                maxWidth: 180,
+                transition: 'background .2s',
               }}
               maxLength={60}
             />
           </div>
-          <button onClick={() => setSection("chats")}
-            style={{ background: 'none', border: 'none', marginBottom: 8, cursor: 'pointer', outline: 'none', color: section === "chats" ? '#3a8dde' : '#7a8ca3', fontSize: 28, transition: 'color .2s' }}
-            title="Chats">
-            <FaComments />
-          </button>
-          <button onClick={() => setSection("groups")}
-            style={{ background: 'none', border: 'none', marginBottom: 8, cursor: 'pointer', outline: 'none', color: section === "groups" ? '#3a8dde' : '#7a8ca3', fontSize: 26, transition: 'color .2s' }}
-            title="Grupos">
-            <FaUserFriends />
-          </button>
-          <button onClick={() => setSection("profile")}
-            style={{ background: 'none', border: 'none', marginTop: 'auto', cursor: 'pointer', outline: 'none', color: section === "profile" ? '#3a8dde' : '#7a8ca3', fontSize: 30, transition: 'color .2s' }}
-            title="Mi perfil">
-            {user?.avatar ? (
-              <img
-                src={getAvatarUrl(user.avatar)}
-                alt="avatar"
-                style={{ width: 44, height: 44, borderRadius: "50%", border: section === "profile" ? '2.5px solid #3a8dde' : '2.5px solid #e3eaf2', objectFit: 'cover', boxShadow: '0 1px 4px #3a8dde22', background: '#fff', display: 'block' }}
-                onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
-              />
-            ) : <FaUserCircle style={{ width: 44, height: 44 }} />}
-          </button>
-          {/* Botón de cerrar sesión */}
-          <button
-            onClick={onLogout}
-            style={{ background: '#fff', border: '1.5px solid #e3eaf2', borderRadius: 8, marginTop: 24, padding: '7px 0', width: 44, cursor: 'pointer', color: '#e74c3c', fontWeight: 600, boxShadow: '0 1px 4px #3a8dde11', fontSize: 15, transition: 'background .2s' }}
-            title="Cerrar sesión"
-          >
-            Salir
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
+            <button onClick={() => setSection("chats")}
+              style={{
+                background: section === "chats" ? 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)' : 'rgba(245,250,255,0.85)',
+                border: 'none',
+                borderRadius: 14,
+                marginBottom: 2,
+                cursor: 'pointer',
+                outline: 'none',
+                color: section === "chats" ? '#fff' : '#7a8ca3',
+                fontSize: 30,
+                boxShadow: section === "chats" ? '0 2px 12px #3a8dde33' : '0 1px 4px #3a8dde11',
+                padding: '12px 0',
+                width: 56,
+                transition: 'all .18s',
+              }}
+              title="Chats"
+            >
+              <FaComments />
+            </button>
+            <button onClick={() => setSection("groups")}
+              style={{
+                background: section === "groups" ? 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)' : 'rgba(245,250,255,0.85)',
+                border: 'none',
+                borderRadius: 14,
+                marginBottom: 2,
+                cursor: 'pointer',
+                outline: 'none',
+                color: section === "groups" ? '#fff' : '#7a8ca3',
+                fontSize: 28,
+                boxShadow: section === "groups" ? '0 2px 12px #3a8dde33' : '0 1px 4px #3a8dde11',
+                padding: '12px 0',
+                width: 56,
+                transition: 'all .18s',
+              }}
+              title="Grupos"
+            >
+              <FaUserFriends />
+            </button>
+          </div>
+          {/* Botón de perfil flotante abajo */}
+          <div style={{ marginTop: 'auto', marginBottom: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <button onClick={() => setSection("profile")}
+              style={{
+                background: section === "profile" ? 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)' : 'rgba(245,250,255,0.85)',
+                border: 'none',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                outline: 'none',
+                color: section === "profile" ? '#fff' : '#7a8ca3',
+                boxShadow: section === "profile" ? '0 2px 12px #3a8dde33' : '0 1px 4px #3a8dde11',
+                padding: 0,
+                width: 54,
+                height: 54,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 32,
+                marginBottom: 2,
+                transition: 'all .18s',
+              }}
+              title="Mi perfil"
+            >
+              {user?.avatar ? (
+                <img
+                  src={getAvatarUrl(user.avatar)}
+                  alt="avatar"
+                  style={{ width: 44, height: 44, borderRadius: "50%", border: section === "profile" ? '3px solid #3a8dde' : '3px solid #e3eaf2', objectFit: 'cover', background: '#fff', display: 'block', transition: 'border .2s' }}
+                  onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
+                />
+              ) : <FaUserCircle style={{ width: 44, height: 44, color: '#b0b8c9' }} />}
+            </button>
+            {/* Botón de cerrar sesión */}
+            <button
+              onClick={onLogout}
+              style={{
+                background: 'linear-gradient(90deg,#fff 60%,#ffeaea 100%)',
+                border: 'none',
+                borderRadius: 14,
+                padding: '10px 0',
+                width: 54,
+                color: '#e74c3c',
+                fontWeight: 700,
+                fontSize: 16,
+                boxShadow: '0 1px 8px #e74c3c22',
+                cursor: 'pointer',
+                transition: 'all .18s',
+                outline: 'none',
+                marginTop: 2,
+              }}
+              title="Cerrar sesión"
+            >
+              <span style={{ fontSize: 20, fontWeight: 900 }}>⎋</span>
+            </button>
+          </div>
         </div>
         {/* Main area */}
   <div className="chat-app-mainarea" style={{ flex: 1, background: '#fafdff', display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>

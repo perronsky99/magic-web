@@ -32,7 +32,6 @@ import './App.css';
 import logo from './assets/image.png';
 // Agrego import para el fondo de partículas
 import Particles from 'react-tsparticles';
-import { loadFull } from 'tsparticles';
 import ChatApp from './chat/ChatApp';
 import { API_URL } from './chat/api';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
@@ -243,7 +242,6 @@ function AppRoutes() {
   const { auth, logout } = useAuth();
   const navigate = useNavigate();
   // Configuración de partículas mágicas
-  const particlesInit = async (main) => { await loadFull(main); };
   const particlesOptions = {
     fullScreen: { enable: false },
     background: { color: 'transparent' },
@@ -268,7 +266,7 @@ function AppRoutes() {
       <Route path="/" element={
         <div className="app magic-landing">
           {/* Fondo de partículas mágicas */}
-          <Particles className="magic-particles" id="tsparticles" init={particlesInit} options={particlesOptions} />
+          <Particles className="magic-particles" id="tsparticles" options={particlesOptions} />
           <HeaderResponsive />
           <main className="hero">
             <h1 className="magic-title">Conéctate con <br /> el mundo</h1>

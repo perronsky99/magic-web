@@ -82,7 +82,7 @@ export default function ChatApp({ token, user, onLogout }) {
           transition: 'all .25s cubic-bezier(.4,1.4,.6,1)',
         }}>
           <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, position: 'relative', background: 'rgba(255,255,255,0.7)', borderRadius: 22, boxShadow: '0 4px 24px #3a8dde22' }}>
-            <img src={logo} alt="Magic2k" style={{ width: 68, height: 68, borderRadius: 18, boxShadow: '0 2px 12px #3a8dde22', background: '#fff', objectFit: 'contain', transition: 'box-shadow .2s' }} />
+            <img src={logo} alt="Magic2k" style={{ width: 105.8, height: 105.8, borderRadius: 27.6, background: '#fff', objectFit: 'contain', boxShadow: '0 2px 22px #3a8dde44', transition: 'box-shadow .2s' }} />
           </div>
           {/* Avatar y estado */}
           <div style={{ marginBottom: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>

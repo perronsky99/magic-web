@@ -274,7 +274,7 @@ function AppRoutes() {
             <h1 className="magic-title">Conéctate con <br /> el mundo</h1>
             <p className="subtitle">Explorá el futuro de la comunicación en línea.</p>
             <div className="hero-buttons">
-              <button className="btn primary magic-btn" onClick={() => navigate('/login')}>Empezar ahora</button>
+              <button className="btn primary magic-btn" onClick={() => navigate('/login')}>Iniciar sesión</button>
               <button className="btn secondary magic-btn">Saber más</button>
             </div>
           </main>

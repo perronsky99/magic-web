@@ -82,7 +82,71 @@ export default function ChatApp({ token, user, onLogout }) {
           transition: 'all .25s cubic-bezier(.4,1.4,.6,1)',
         }}>
           <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, position: 'relative', background: 'rgba(255,255,255,0.7)', borderRadius: 22, boxShadow: '0 4px 24px #3a8dde22' }}>
-            <img src={logo} alt="Magic2k" style={{ width: 105.8, height: 105.8, borderRadius: 27.6, background: '#fff', objectFit: 'contain', boxShadow: '0 2px 22px #3a8dde44', transition: 'box-shadow .2s' }} />
+            {/* Overlay de estrellitas tenues animadas */}
+            <div style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',zIndex:2,pointerEvents:'none'}}>
+              <span style={{position:'absolute',top:'12%',left:'55%',fontSize:18,color:'#fff',opacity:0.8,filter:'drop-shadow(0 0 8px #fff)',animation:'star-move1 3.2s linear infinite'}}>✦</span>
+              <span style={{position:'absolute',top:'28%',right:'8%',fontSize:14,color:'#6a9cff',opacity:0.7,filter:'drop-shadow(0 0 7px #6a9cff)',animation:'star-move2 2.7s linear infinite'}}>✧</span>
+              <span style={{position:'absolute',bottom:'18%',left:'18%',fontSize:13,color:'#3a8dde',opacity:0.6,filter:'drop-shadow(0 0 6px #3a8dde)',animation:'star-move3 3.5s linear infinite'}}>✦</span>
+              <span style={{position:'absolute',bottom:'10%',right:'16%',fontSize:16,color:'#eaf2ff',opacity:0.7,filter:'drop-shadow(0 0 8px #eaf2ff)',animation:'star-move4 2.9s linear infinite'}}>✧</span>
+            </div>
+            <style>{`
+              @keyframes floatRandom {
+                0% { transform: translate(0, 0); }
+                20% { transform: translate(-4px, -6px); }
+                40% { transform: translate(6px, -2px); }
+                60% { transform: translate(-3px, 7px); }
+                80% { transform: translate(5px, 3px); }
+                100% { transform: translate(0, 0); }
+              }
+              @keyframes star-move1 {0%{transform:translate(0,0);}20%{transform:translate(-6px,2px);}40%{transform:translate(4px,-4px);}60%{transform:translate(-2px,6px);}80%{transform:translate(3px,2px);}100%{transform:translate(0,0);}}
+              @keyframes star-move2 {0%{transform:translate(0,0);}20%{transform:translate(5px,-3px);}40%{transform:translate(-4px,5px);}60%{transform:translate(2px,-6px);}80%{transform:translate(-3px,2px);}100%{transform:translate(0,0);}}
+              @keyframes star-move3 {0%{transform:translate(0,0);}20%{transform:translate(-3px,4px);}40%{transform:translate(6px,-2px);}60%{transform:translate(-5px,3px);}80%{transform:translate(2px,-4px);}100%{transform:translate(0,0);}}
+              @keyframes star-move4 {0%{transform:translate(0,0);}20%{transform:translate(4px,5px);}40%{transform:translate(-2px,-6px);}60%{transform:translate(3px,4px);}80%{transform:translate(-4px,-2px);}100%{transform:translate(0,0);}}
+            `}</style>
+            {/* Halo mágico difuso */}
+            <div style={{position:'absolute',top:'-18%',left:'-18%',width:'136%',height:'136%',zIndex:1,pointerEvents:'none',borderRadius:'50%',background:'radial-gradient(circle,rgba(106,156,255,0.18) 0%,rgba(58,141,222,0.12) 60%,rgba(255,255,255,0) 100%)',filter:'blur(2.5px)',animation:'haloGlow 3.5s ease-in-out infinite'}}></div>
+            {/* Estrellitas premium animadas */}
+            <div style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',zIndex:2,pointerEvents:'none'}}>
+              <span style={{position:'absolute',top:'12%',left:'55%',fontSize:18,color:'#fff',opacity:0.8,filter:'drop-shadow(0 0 8px #fff)',animation:'star-move1 3.2s linear infinite'}}>✦</span>
+              <span style={{position:'absolute',top:'28%',right:'8%',fontSize:14,color:'#6a9cff',opacity:0.7,filter:'drop-shadow(0 0 7px #6a9cff)',animation:'star-move2 2.7s linear infinite'}}>✧</span>
+              <span style={{position:'absolute',bottom:'18%',left:'18%',fontSize:13,color:'#3a8dde',opacity:0.6,filter:'drop-shadow(0 0 6px #3a8dde)',animation:'star-move3 3.5s linear infinite'}}>✦</span>
+              <span style={{position:'absolute',bottom:'10%',right:'16%',fontSize:16,color:'#eaf2ff',opacity:0.7,filter:'drop-shadow(0 0 8px #eaf2ff)',animation:'star-move4 2.9s linear infinite'}}>✧</span>
+              <span style={{position:'absolute',top:'20%',left:'22%',fontSize:10,color:'#fffbe6',opacity:0.5,filter:'drop-shadow(0 0 6px #fffbe6)',animation:'star-move5 4.1s linear infinite'}}>✦</span>
+              <span style={{position:'absolute',bottom:'24%',right:'24%',fontSize:12,color:'#b0c4ff',opacity:0.5,filter:'drop-shadow(0 0 5px #b0c4ff)',animation:'star-move6 3.7s linear infinite'}}>✧</span>
+            </div>
+            <style>{`
+              @keyframes haloGlow {
+                0% { opacity: 0.7; filter: blur(2.5px) brightness(1.1); }
+                50% { opacity: 1; filter: blur(4.5px) brightness(1.3); }
+                100% { opacity: 0.7; filter: blur(2.5px) brightness(1.1); }
+              }
+              @keyframes floatRandom {
+                0% { transform: translate(0, 0); }
+                20% { transform: translate(-4px, -6px); }
+                40% { transform: translate(6px, -2px); }
+                60% { transform: translate(-3px, 7px); }
+                80% { transform: translate(5px, 3px); }
+                100% { transform: translate(0, 0); }
+              }
+              @keyframes star-move1 {0%{transform:translate(0,0);}20%{transform:translate(-6px,2px);}40%{transform:translate(4px,-4px);}60%{transform:translate(-2px,6px);}80%{transform:translate(3px,2px);}100%{transform:translate(0,0);}}
+              @keyframes star-move2 {0%{transform:translate(0,0);}20%{transform:translate(5px,-3px);}40%{transform:translate(-4px,5px);}60%{transform:translate(2px,-6px);}80%{transform:translate(-3px,2px);}100%{transform:translate(0,0);}}
+              @keyframes star-move3 {0%{transform:translate(0,0);}20%{transform:translate(-3px,4px);}40%{transform:translate(6px,-2px);}60%{transform:translate(-5px,3px);}80%{transform:translate(2px,-4px);}100%{transform:translate(0,0);}}
+              @keyframes star-move4 {0%{transform:translate(0,0);}20%{transform:translate(4px,5px);}40%{transform:translate(-2px,-6px);}60%{transform:translate(3px,4px);}80%{transform:translate(-4px,-2px);}100%{transform:translate(0,0);}}
+              @keyframes star-move5 {0%{transform:translate(0,0);}20%{transform:translate(-2px,3px);}40%{transform:translate(3px,-2px);}60%{transform:translate(-1px,4px);}80%{transform:translate(2px,1px);}100%{transform:translate(0,0);}}
+              @keyframes star-move6 {0%{transform:translate(0,0);}20%{transform:translate(2px,-2px);}40%{transform:translate(-3px,3px);}60%{transform:translate(1px,-4px);}80%{transform:translate(-2px,1px);}100%{transform:translate(0,0);}}
+            `}</style>
+            <img src={logo} alt="Magic2k" style={{
+              width: 105.8,
+              height: 105.8,
+              borderRadius: 27.6,
+              background: '#fff',
+              objectFit: 'contain',
+              boxShadow: '0 2px 22px #3a8dde44',
+              transition: 'box-shadow .2s',
+              animation: 'floatRandom 3.2s ease-in-out infinite',
+              zIndex:3,
+              position:'relative'
+            }} />
           </div>
           {/* Avatar y estado */}
           <div style={{ marginBottom: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>

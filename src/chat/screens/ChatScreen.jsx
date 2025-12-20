@@ -1,13 +1,27 @@
 import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
-import { getChatMessages, sendMessage, sendImage, sendAudio, getStatusMsg } from "../api";
+import { getChatMessages, sendMessage, sendImage, sendAudio, getStatusMsg, getAccessToken } from "../api";
 import { USER_STATES } from '@/config/userStates';
 import { logoutAndRedirect } from '@/utils/logout';
 import { useSocket } from "../SocketContext";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import defaultAvatar from '../../assets/user.png';
 import { API_URL } from '../api';
+
+// Función para decodificar JWT y obtener el user_id
+function getUserIdFromToken() {
+  try {
+    const token = getAccessToken();
+    if (!token) return null;
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded.user_id || decoded.id || decoded._id || decoded.sub;
+  } catch (e) {
+    console.error('Error decodificando token:', e);
+    return null;
+  }
+}
 
 function getAvatarUrl(avatar) {
   if (!avatar) return defaultAvatar;
@@ -38,9 +52,11 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       .then(data => {
         // Si la respuesta es {messages: [], total: 0}, no es error
         let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
+        
         setMessages(msgs.map(msg => {
           // Obtener el ID del usuario que envió el mensaje
           const senderId = msg.user?._id || msg.user?.id || msg.user;
+          
           // Determinar el tipo y contenido del mensaje
           const type = msg.type || 'TEXT';
           const baseMsg = {
@@ -49,11 +65,9 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
           };
           if (type === 'IMAGE') {
-            // Ruta: Subidas/imagenes/archivo.jpg → /imagenes/archivo.jpg
             const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
             return { ...baseMsg, image: imgUrl };
           } else if (type === 'AUDIO') {
-            // Ruta: Subidas/audios/archivo.mp3 → /audios/archivo.mp3
             const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
             return { ...baseMsg, audio: audioUrl };
           } else {
@@ -74,15 +88,13 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setSocketError(false);
     socket.emit("join", chat._id);
     const handleMessage = msg => {
-      // DEBUG: Ver estructura del mensaje
-      console.log('📩 Mensaje recibido:', JSON.stringify(msg, null, 2));
-      console.log('📩 msg.user:', msg.user);
-      console.log('📩 user actual:', user);
-      
-      // Obtener el ID del usuario que envió el mensaje
-      const senderId = msg.user?._id || msg.user?.id || msg.user;
-      console.log('📩 senderId extraído:', senderId);
-      console.log('📩 myId:', user?._id || user?.id);
+      // El user puede venir como objeto poblado o como string ID
+      let senderId;
+      if (typeof msg.user === 'object' && msg.user !== null) {
+        senderId = msg.user._id || msg.user.id;
+      } else {
+        senderId = msg.user; // Es un string ID directamente
+      }
       
       // Determinar el tipo y contenido del mensaje
       const type = msg.type || 'TEXT';
@@ -448,7 +460,9 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           {messages.map((msg, idx) => {
             // Normalizar IDs a string
             const normalizeId = id => (id ? String(id).trim() : '');
-            const myId = normalizeId(user?._id || user?.id);
+            // Obtener el ID del usuario desde el JWT token (no del localStorage compartido)
+            const tokenUserId = getUserIdFromToken();
+            const myId = normalizeId(tokenUserId || user?._id || user?.id);
             const msgFrom = normalizeId(msg.from);
             const isMine = myId && msgFrom && myId === msgFrom;
             

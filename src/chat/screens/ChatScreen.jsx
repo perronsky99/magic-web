@@ -38,12 +38,28 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       .then(data => {
         // Si la respuesta es {messages: [], total: 0}, no es error
         let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
-        setMessages(msgs.map(msg => ({
-          id: msg._id,
-          from: (msg.user && (msg.user._id || msg.user.id)) ? (msg.user._id || msg.user.id) : (msg.sender || msg.from || msg.userId),
-          text: msg.message,
-          time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-        })));
+        setMessages(msgs.map(msg => {
+          // Obtener el ID del usuario que envió el mensaje
+          const senderId = msg.user?._id || msg.user?.id || msg.user;
+          // Determinar el tipo y contenido del mensaje
+          const type = msg.type || 'TEXT';
+          const baseMsg = {
+            id: msg._id,
+            from: senderId,
+            time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+          };
+          if (type === 'IMAGE') {
+            // Ruta: Subidas/imagenes/archivo.jpg → /imagenes/archivo.jpg
+            const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
+            return { ...baseMsg, image: imgUrl };
+          } else if (type === 'AUDIO') {
+            // Ruta: Subidas/audios/archivo.mp3 → /audios/archivo.mp3
+            const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
+            return { ...baseMsg, audio: audioUrl };
+          } else {
+            return { ...baseMsg, text: msg.message };
+          }
+        }));
       })
       .catch((err) => {
         setMessages([]);
@@ -58,18 +74,34 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setSocketError(false);
     socket.emit("join", chat._id);
     const handleMessage = msg => {
-      setMessages(prev => prev.some(m => m.id === msg._id)
-        ? prev
-        : [
-          ...prev,
-          {
-            id: msg._id,
-            from: (msg.user && (msg.user._id || msg.user.id)) ? (msg.user._id || msg.user.id) : (msg.sender || msg.from || msg.userId),
-            text: msg.message,
-            time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-          }
-        ]
-      );
+      // DEBUG: Ver estructura del mensaje
+      console.log('📩 Mensaje recibido:', JSON.stringify(msg, null, 2));
+      console.log('📩 msg.user:', msg.user);
+      console.log('📩 user actual:', user);
+      
+      // Obtener el ID del usuario que envió el mensaje
+      const senderId = msg.user?._id || msg.user?.id || msg.user;
+      console.log('📩 senderId extraído:', senderId);
+      console.log('📩 myId:', user?._id || user?.id);
+      
+      // Determinar el tipo y contenido del mensaje
+      const type = msg.type || 'TEXT';
+      const baseMsg = {
+        id: msg._id,
+        from: senderId,
+        time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+      };
+      let newMsg;
+      if (type === 'IMAGE') {
+        const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
+        newMsg = { ...baseMsg, image: imgUrl };
+      } else if (type === 'AUDIO') {
+        const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
+        newMsg = { ...baseMsg, audio: audioUrl };
+      } else {
+        newMsg = { ...baseMsg, text: msg.message };
+      }
+      setMessages(prev => prev.some(m => m.id === msg._id) ? prev : [...prev, newMsg]);
     };
     const handleTic = data => {
       setMessages(msgs => ([...msgs, {
@@ -105,12 +137,24 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         getChatMessages(chat._id)
           .then(data => {
             let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
-            setMessages(msgs.map(msg => ({
-              id: msg._id,
-              from: msg.sender,
-              text: msg.message,
-              time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            })));
+            setMessages(msgs.map(msg => {
+              const senderId = msg.user?._id || msg.user?.id || msg.user;
+              const type = msg.type || 'TEXT';
+              const baseMsg = {
+                id: msg._id,
+                from: senderId,
+                time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+              };
+              if (type === 'IMAGE') {
+                const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
+                return { ...baseMsg, image: imgUrl };
+              } else if (type === 'AUDIO') {
+                const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
+                return { ...baseMsg, audio: audioUrl };
+              } else {
+                return { ...baseMsg, text: msg.message };
+              }
+            }));
           })
           .catch(() => { });
       }, 3000);
@@ -402,182 +446,125 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       >
         <TransitionGroup>
           {messages.map((msg, idx) => {
-            // Normalizar IDs a string y sin espacios
+            // Normalizar IDs a string
             const normalizeId = id => (id ? String(id).trim() : '');
-            const myId = normalizeId(user && (user._id || user.id || user.uid || user.idUser));
-            const msgFrom = normalizeId(
-              (msg.user && (msg.user._id || msg.user.id)) ? msg.user._id || msg.user.id :
-                msg.from ? msg.from :
-                  msg.sender ? msg.sender :
-                    msg.userId ? msg.userId :
-                      ''
-            );
+            const myId = normalizeId(user?._id || user?.id);
+            const msgFrom = normalizeId(msg.from);
             const isMine = myId && msgFrom && myId === msgFrom;
+            
             const key = msg.id ? String(msg.id) : `${idx}`;
             if (!messageRefs.current[key]) messageRefs.current[key] = React.createRef();
-            // Colores y glassmorphism
-            const bubbleColor = isMine ? 'rgba(58,141,222,0.92)' : 'rgba(255,255,255,0.85)';
-            const textColor = isMine ? '#fff' : '#23263a';
-            const borderColor = isMine ? 'rgba(58,141,222,0.22)' : '#e3eaf2';
-            const align = isMine ? 'flex-end' : 'flex-start';
+            
             let content = null;
+            
+            // Estilos tipo WhatsApp
+            const bubbleStyleMine = {
+              background: 'linear-gradient(135deg, #3a8dde 0%, #5a9fe8 100%)',
+              color: '#fff',
+              borderRadius: '18px 18px 4px 18px',
+              marginLeft: 'auto',
+              marginRight: 12,
+            };
+            const bubbleStyleOther = {
+              background: '#fff',
+              color: '#1a1a2e',
+              borderRadius: '18px 18px 18px 4px',
+              marginRight: 'auto',
+              marginLeft: 12,
+              border: '1px solid #e0e4ea',
+            };
+            const bubbleBase = {
+              padding: '10px 14px',
+              maxWidth: '70%',
+              minWidth: 60,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              marginBottom: 8,
+              wordBreak: 'break-word',
+              position: 'relative',
+            };
+            const timeStyleMine = { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginLeft: 8, whiteSpace: 'nowrap' };
+            const timeStyleOther = { fontSize: 11, color: '#8696a6', marginLeft: 8, whiteSpace: 'nowrap' };
+
             if (msg.image) {
               content = (
-                <div
-                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
-                  style={{
-                    background: 'rgba(255,255,255,0.92)',
-                    border: '1.5px solid #e3eaf2',
-                    borderRadius: 18,
-                    padding: 6,
-                    boxShadow: isMine ? '0 2px 12px #3a8dde33' : '0 2px 8px #3a8dde11',
-                    maxWidth: 260,
-                    alignSelf: align,
-                    marginBottom: 10,
-                    marginRight: isMine ? 22 : 0,
-                    marginLeft: !isMine ? 32 : 0,
-                  }}
-                >
-                  <img src={msg.image} alt="img" style={{ maxWidth: 220, maxHeight: 180, borderRadius: 14, objectFit: 'cover', display: 'block' }} />
-                  <span className="msg-time" style={{ fontSize: 12, color: '#7a8ca3', marginLeft: 6 }}>{msg.time}</span>
+                <div style={{ 
+                  ...bubbleBase, 
+                  ...(isMine ? bubbleStyleMine : bubbleStyleOther),
+                  padding: 4,
+                  background: isMine ? 'linear-gradient(135deg, #3a8dde 0%, #5a9fe8 100%)' : '#fff',
+                }}>
+                  <img src={msg.image} alt="img" style={{ maxWidth: 220, maxHeight: 200, borderRadius: 14, objectFit: 'cover', display: 'block' }} />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 6px 2px' }}>
+                    <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
+                  </div>
                 </div>
               );
             } else if (msg.audio) {
               content = (
-                <div
-                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
-                  style={{
-                    background: 'rgba(255,255,255,0.92)',
-                    border: '1.5px solid #e3eaf2',
-                    borderRadius: 18,
-                    padding: '10px 14px',
-                    boxShadow: isMine ? '0 2px 12px #3a8dde33' : '0 2px 8px #3a8dde11',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    maxWidth: 260,
-                    alignSelf: align,
-                    marginBottom: 10,
-                    marginRight: isMine ? 22 : 0,
-                    marginLeft: !isMine ? 32 : 0,
-                  }}
-                >
-                  <audio src={msg.audio} controls style={{ width: 180 }} />
-                  <span className="msg-time" style={{ fontSize: 12, color: '#7a8ca3', marginLeft: 6 }}>{msg.time}</span>
+                <div style={{ 
+                  ...bubbleBase, 
+                  ...(isMine ? bubbleStyleMine : bubbleStyleOther),
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  <audio src={msg.audio} controls style={{ width: 180, height: 36 }} />
+                  <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
                 </div>
               );
             } else if (msg.tic) {
               content = (
-                <div
-                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
-                  style={{
-                    background: 'rgba(255,255,255,0.92)',
-                    color: '#23263a',
-                    borderRadius: 20,
-                    padding: '12px 22px',
-                    fontWeight: 700,
-                    boxShadow: '0 2px 12px #ffe06633',
-                    fontSize: 17,
-                    letterSpacing: 1,
-                    animation: 'ticShake .6s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    alignSelf: align,
-                    justifyContent: align,
-                    marginBottom: 10,
-                    marginRight: isMine ? 22 : 0,
-                    marginLeft: !isMine ? 32 : 0,
-                  }}
-                >
-                  <span role="img" aria-label="tic">⚡</span> ¡TIC enviado!
-                  <span className="msg-time" style={{ fontSize: 12, color: '#7a8ca3', marginLeft: 6 }}>{msg.time}</span>
+                <div style={{ 
+                  ...bubbleBase, 
+                  ...(isMine ? bubbleStyleMine : bubbleStyleOther),
+                  background: 'linear-gradient(135deg, #ffd54f 0%, #ffb300 100%)',
+                  color: '#1a1a2e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  animation: 'ticShake .6s',
+                }}>
+                  <span role="img" aria-label="tic" style={{ fontSize: 20 }}>⚡</span>
+                  <span style={{ fontWeight: 600 }}>¡TIC!</span>
+                  <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.5)', marginLeft: 'auto' }}>{msg.time}</span>
                 </div>
               );
             } else if (msg.text) {
               content = (
-                <div
-                  className={`chat-bubble ${isMine ? 'me' : 'other'}`}
-                  style={{
-                    background: bubbleColor,
-                    color: textColor,
-                    borderRadius: 20,
-                    borderBottomRightRadius: isMine ? 6 : 20,
-                    borderBottomLeftRadius: isMine ? 20 : 6,
-                    padding: '14px 22px',
-                    fontSize: 17,
-                    fontWeight: 500,
-                    boxShadow: isMine ? '0 2px 12px #3a8dde33' : '0 2px 8px #3a8dde11',
-                    maxWidth: 400,
-                    minWidth: 36,
-                    wordBreak: 'break-word',
-                    position: 'relative',
-                    marginBottom: 10,
-                    marginLeft: isMine ? 28 : 32,
-                    marginRight: isMine ? 22 : 0,
-                    alignSelf: align,
-                    border: `2px solid ${borderColor}`,
-                    opacity: 0.98,
-                    transition: 'background .2s',
-                  }}
-                >
-                  {msg.text}
-                  <span className="msg-time" style={{ fontSize: 12, color: '#e3eaf2', marginLeft: 12, fontWeight: 400, opacity: 0.8 }}>{msg.time}</span>
-                  {/* Pico de la burbuja */}
-                  <span
-                    style={{
-                      content: '""',
-                      position: 'absolute',
-                      bottom: 0,
-                      ...(isMine ? { right: -10 } : { left: -10 }),
-                      width: 0,
-                      height: 0,
-                      borderTop: '10px solid transparent',
-                      borderBottom: '10px solid transparent',
-                      borderLeft: isMine ? '10px solid rgba(58,141,222,0.92)' : 'none',
-                      borderRight: !isMine ? '10px solid rgba(255,255,255,0.85)' : 'none',
-                      zIndex: 1,
-                      display: 'inline-block',
-                    }}
-                  />
+                <div style={{ ...bubbleBase, ...(isMine ? bubbleStyleMine : bubbleStyleOther) }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>{msg.text}</span>
+                    <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
+                  </div>
                 </div>
               );
             } else {
               content = (
-                <div
-                  className="chat-bubble other"
-                  style={{
-                    background: '#ffeded',
-                    color: '#c0392b',
-                    borderRadius: 16,
-                    padding: '12px 18px',
-                    fontWeight: 600,
-                    fontSize: 15,
-                    marginBottom: 10,
-                    border: '1.5px solid #e57373',
-                    alignSelf: align,
-                  }}
-                >
+                <div style={{ 
+                  ...bubbleBase, 
+                  ...bubbleStyleOther,
+                  background: '#ffeded',
+                  color: '#c0392b',
+                  border: '1px solid #e57373',
+                }}>
                   [Mensaje no soportado]
                 </div>
               );
             }
-            if (!content) return null;
+
             return (
               <CSSTransition key={key} timeout={320} classNames="msg-bubble" nodeRef={messageRefs.current[key]}>
                 <div
                   ref={messageRefs.current[key]}
                   style={{
                     display: 'flex',
-                    justifyContent: align,
+                    justifyContent: isMine ? 'flex-end' : 'flex-start',
                     width: '100%',
+                    padding: '0 8px',
                     boxSizing: 'border-box',
-                    overflowX: 'visible',
                   }}
                 >
-                  <div style={{ maxWidth: '80vw', minWidth: 0, width: 'fit-content', boxSizing: 'border-box', margin: 0, padding: 0 }}>
-                    {content}
-                  </div>
+                  {content}
                 </div>
               </CSSTransition>
             );

@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { getUsers, createChat, getChats, markChatAsRead } from "../api";
 import { useSocket } from "../SocketContext";
 import { API_URL } from '../api';
 import defaultAvatar from '../../assets/user.png';
 import { FaPlus, FaCircle } from "react-icons/fa";
 
-// Utilidad simple de debounce
-function debounce(fn, delay) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
+// Utilidad debounce real con useRef
+function useDebouncedCallback(callback, delay) {
+  const timer = useRef();
+  return useCallback((...args) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => callback(...args), delay);
+  }, [callback, delay]);
 }
 
 function getAvatarUrl(avatar) {
@@ -59,15 +59,38 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
     loadChats();
   }, [loadChats]);
 
-  // Buscar usuarios (simulado, deberías conectar a tu API real)
-  const handleSearch = e => {
-    setSearch(e.target.value);
+  // Estado para error de búsqueda
+  const [searchError, setSearchError] = useState("");
+
+  // Búsqueda con debounce y manejo de errores
+  const doUserSearch = async (value) => {
     setLoading(true);
-    setTimeout(() => {
-      // Simulación: filtra usuarios por email
-      setResults([]); // Aquí deberías poner los resultados reales
-      setLoading(false);
-    }, 800);
+    setSearchError("");
+    try {
+      if (value.trim().length < 2) {
+        setResults([]);
+        setLoading(false);
+        return;
+      }
+      const users = await getUsers(value.trim());
+      const filtered = Array.isArray(users)
+        ? users.filter(u => u._id !== user._id && u.email !== user.email)
+        : [];
+      setResults(filtered);
+    } catch (err) {
+      setResults([]);
+      setSearchError("Error al buscar usuarios. Intenta de nuevo.");
+    }
+    setLoading(false);
+  };
+
+  const debouncedUserSearch = useDebouncedCallback(doUserSearch, 500);
+
+  const handleSearch = e => {
+    const value = e.target.value;
+    setSearch(value);
+    setSearchError("");
+    debouncedUserSearch(value);
   };
 
   // ...existing code...
@@ -284,12 +307,23 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
               placeholder="Buscar usuario por nombre o email..."
               style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e3eaf2', fontSize: 15, marginBottom: 14, outline: 'none' }}
               autoFocus
+              aria-label="Buscar usuario por nombre o email"
+              role="searchbox"
             />
-            {loading && <div style={{ color: '#7a8ca3', fontWeight: 500 }}>Buscando...</div>}
-            {!loading && results.length === 0 && search.length > 1 && <div style={{ color: '#7a8ca3', fontWeight: 500 }}>Sin resultados</div>}
+            {loading && <div style={{ color: '#7a8ca3', fontWeight: 500 }} role="status">Buscando...</div>}
+            {searchError && <div style={{ color: '#e74c3c', fontWeight: 500, marginBottom: 6 }}>{searchError}</div>}
+            {!loading && !searchError && results.length === 0 && search.length > 1 && <div style={{ color: '#7a8ca3', fontWeight: 500 }}>Sin resultados</div>}
             <div style={{ width: '100%', marginTop: 6 }}>
               {results.map(u => (
-                <button key={u._id} onClick={() => handleCreateChat(u)} style={{ width: '100%', background: '#fafdff', border: '1.5px solid #e3eaf2', borderRadius: 10, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a' }}>
+                <button
+                  key={u._id}
+                  onClick={() => handleCreateChat(u)}
+                  style={{ width: '100%', background: '#fafdff', border: '1.5px solid #e3eaf2', borderRadius: 10, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a', opacity: loading ? 0.6 : 1 }}
+                  disabled={loading}
+                  aria-disabled={loading}
+                  aria-label={`Iniciar chat con ${u.firstName ? u.firstName + ' ' + (u.lastName || '') : u.email}`}
+                  role="button"
+                >
                   <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: '#3a8dde', fontWeight: 700 }}>
                     {(u.firstName && u.firstName[0]) || (u.email && u.email[0]) || '?'}
                   </span>

@@ -405,12 +405,14 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       >
         <TransitionGroup>
           {messages.map((msg, idx) => {
-            const myId = user && (user._id || user.id || user.uid || user.idUser) ? String(user._id || user.id || user.uid || user.idUser) : '';
-            const msgFrom = msg && (
-              (msg.user && (msg.user._id || msg.user.id)) ? String(msg.user._id || msg.user.id) :
-                msg.from ? String(msg.from) :
-                  msg.sender ? String(msg.sender) :
-                    msg.userId ? String(msg.userId) :
+            // Normalizar IDs a string y sin espacios
+            const normalizeId = id => (id ? String(id).trim() : '');
+            const myId = normalizeId(user && (user._id || user.id || user.uid || user.idUser));
+            const msgFrom = normalizeId(
+              (msg.user && (msg.user._id || msg.user.id)) ? msg.user._id || msg.user.id :
+                msg.from ? msg.from :
+                  msg.sender ? msg.sender :
+                    msg.userId ? msg.userId :
                       ''
             );
             const isMine = myId && msgFrom && myId === msgFrom;

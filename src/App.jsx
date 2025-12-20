@@ -222,7 +222,6 @@ function LoginModal({ onClose }) {
         alignItems: 'center',
         justifyContent: 'center',
         border: '1.5px solid #23263a',
-        boxShadow: '0 8px 32px #0005',
         backdropFilter: 'blur(2px)',
       }}>
         <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', fontSize: 28, cursor: 'pointer', color: '#3a8dde', zIndex: 2, lineHeight: 1 }} title="Cerrar">×</button>

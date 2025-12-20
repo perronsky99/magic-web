@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/tic.mp3";
 import { getChatMessages, sendMessage, sendImage, sendAudio, getStatusMsg } from "../api";
+import { USER_STATES } from '@/config/userStates';
+import { logoutAndRedirect } from '@/utils/logout';
 import { useSocket } from "../SocketContext";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import defaultAvatar from '../../assets/user.png';
@@ -230,12 +232,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     }
   }, [chat?.otherUser?._id, chat?.otherUser?.id, chat?.otherUser?.userId, chat?.otherUser?.uid]);
 
-  const USER_STATES = [
-    { key: 'online', label: 'En línea', color: '#3ac47d', icon: '🟢' },
-    { key: 'away', label: 'Ausente', color: '#ffe066', icon: '🟡' },
-    { key: 'busy', label: 'Ocupado', color: '#e74c3c', icon: '🔴' },
-    { key: 'invisible', label: 'Invisible', color: '#b0b8c9', icon: '⚪' },
-  ];
+  // Estados centralizados en config/userStates
 
   if (loadError) {
     // Solo mostrar error si realmente hubo un error en la petición, no si la lista está vacía

@@ -39,6 +39,15 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   const [results, setResults] = useState([]);
   const [chatError, setChatError] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
+  // Sincronizar onlineUsers globalmente
+  React.useEffect(() => {
+    // Si onlineUsers es un array de IDs, conviértelo a objetos {id, state: 'online'}
+    if (Array.isArray(onlineUsers) && onlineUsers.length > 0 && typeof onlineUsers[0] === 'string') {
+      window.magic2k_onlineUsers = onlineUsers.map(id => ({ id, state: 'online' }));
+    } else {
+      window.magic2k_onlineUsers = onlineUsers;
+    }
+  }, [onlineUsers]);
   const [loadingChats, setLoadingChats] = useState(true);
   const [apiError, setApiError] = useState("");
   // loading para búsqueda de usuarios
@@ -147,13 +156,13 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         participants = [chat.participant_one, chat.participant_two];
       }
       const other = (participants || []).find(u => u && u._id !== user._id && u.email !== user.email) || chat.otherUser;
+      const isOnline = other?._id && String(other._id) !== String(user._id) && onlineUsers.includes(String(other._id));
       const normalizedChat = {
         ...chat,
         participants: participants,
         _id: chat._id || chat.id,
-        otherUser: other
+        otherUser: { ...other, state: isOnline ? 'online' : 'invisible' }
       };
-      const isOnline = other?._id && String(other._id) !== String(user._id) && onlineUsers.includes(String(other._id));
       return (
         <button key={normalizedChat._id} onClick={async () => {
           try {

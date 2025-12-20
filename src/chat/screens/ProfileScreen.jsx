@@ -1,8 +1,10 @@
 import React, { useRef, useState } from "react";
+import { useAuth } from '../AuthContext';
 import defaultAvatar from '../../assets/user.png';
 import { updateUserProfile, API_URL } from '../api';
 
 export default function ProfileScreen({ user, token, onBack, onUserUpdate }) {
+  const { auth, login, logout } = useAuth();
   const [preview, setPreview] = useState(user?.avatar || "");
   const [avatarFile, setAvatarFile] = useState(null);
   const fileInputRef = useRef();
@@ -50,6 +52,8 @@ export default function ProfileScreen({ user, token, onBack, onUserUpdate }) {
       setAvatarFile(null);
       setPreview(updated.avatar || "");
       if (onUserUpdate) onUserUpdate(updated);
+      // Actualizar el usuario global si existe el método login
+      if (login) login({ token, user: updated });
     } catch (err) {
       setError(err.message || 'Error al guardar');
     }

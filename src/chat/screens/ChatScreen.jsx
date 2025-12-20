@@ -360,10 +360,16 @@ export default function ChatScreen({ chat, user, token, onBack }) {
               ) : (
                 chat?.otherUser?.email || "Usuario"
               )}
-              {/* Estado visual del usuario actual */}
+              {/* Estado visual del otro usuario (usando onlineUsers como array de objetos) */}
               {(() => {
-                const state = localStorage.getItem('magic2k_user_state') || 'online';
-                const s = USER_STATES.find(x => x.key === state);
+                let onlineUsers = [];
+                try {
+                  onlineUsers = window.magic2k_onlineUsers || [];
+                } catch {}
+                const otherId = chat?.otherUser?._id || chat?.otherUser?.id || chat?.otherUser?.userId || chat?.otherUser?.uid;
+                const userObj = onlineUsers.find(u => String(u.id) === String(otherId));
+                const stateKey = userObj?.state || 'invisible';
+                const s = USER_STATES.find(x => x.key === stateKey);
                 return s ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
                     <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />

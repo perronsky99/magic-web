@@ -337,7 +337,12 @@ function AppRoutes() {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <ChatApp token={auth.token} user={auth.user} onLogout={logout} />
+            <ChatApp
+              token={auth.token}
+              user={auth.user}
+              onLogout={logout}
+              onUserUpdate={updatedUser => setAuth(a => ({ ...a, user: updatedUser }))}
+            />
           </div>
         </ProtectedRoute>
       } />

@@ -14,7 +14,10 @@ import defaultAvatar from '../assets/user.png';
 function getAvatarUrl(avatar) {
   if (!avatar) return defaultAvatar;
   if (avatar.startsWith('http')) return avatar;
-  return `${API_URL}/api/${avatar.replace(/^\/+/, '')}`;
+  if (avatar.startsWith('data:image')) return avatar; // base64
+  // Si avatar ya incluye 'avatar/', no lo dupliques
+  const cleanAvatar = avatar.replace(/^avatar\//, '');
+  return `${API_URL}/api/avatar/${cleanAvatar}`;
 }
 
 const USER_STATES = [
@@ -24,7 +27,7 @@ const USER_STATES = [
   { key: 'invisible', label: 'Invisible', color: '#b0b8c9', icon: '⚪' },
 ];
 
-export default function ChatApp({ token, user, onLogout }) {
+export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
   const [section, setSection] = useState("chats"); // chats | groups | profile | chat | groupchat
   const [selectedChat, setSelectedChat] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -375,7 +378,12 @@ export default function ChatApp({ token, user, onLogout }) {
           )}
           {/* Pantalla de perfil */}
           {section === "profile" && (
-            <ProfileScreen user={user} token={token} onBack={() => setSection("chats")} />
+            <ProfileScreen
+              user={user}
+              token={token}
+              onBack={() => setSection("chats")}
+              onUserUpdate={onUserUpdate}
+            />
           )}
           {/* Chat individual */}
           {section === "chat" && selectedChat && (

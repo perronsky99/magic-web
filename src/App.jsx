@@ -30,6 +30,7 @@ function HeaderResponsive() {
 import React from 'react';
 import './App.css';
 import logo from './assets/image.png';
+import bgChat from './assets/bg-chat.jpeg';
 // Agrego import para el fondo de partículas
 import Particles from 'react-tsparticles';
 import ChatApp from './chat/ChatApp';
@@ -203,10 +204,11 @@ function LoginModal({ onClose }) {
     <div style={{
       position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(20,22,34,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', animation: 'fadeIn .2s'
+      background: `url(${bgChat}) center center / cover no-repeat`,
+      animation: 'fadeIn .2s'
     }}>
       <div style={{
-        background: 'rgba(32,36,54,0.98)',
+        background: 'rgba(32,36,54,0.92)',
         borderRadius: 22,
         boxShadow: '0 8px 32px #0005',
         padding: '0',
@@ -220,6 +222,8 @@ function LoginModal({ onClose }) {
         alignItems: 'center',
         justifyContent: 'center',
         border: '1.5px solid #23263a',
+        boxShadow: '0 8px 32px #0005',
+        backdropFilter: 'blur(2px)',
       }}>
         <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', fontSize: 28, cursor: 'pointer', color: '#3a8dde', zIndex: 2, lineHeight: 1 }} title="Cerrar">×</button>
         <form onSubmit={handleLogin} style={{ width: '100%', maxWidth: 260, padding: '32px 18px 24px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>

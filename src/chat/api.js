@@ -142,15 +142,34 @@ export async function sendMessage(chatId, text) {
 
 // Enviar imagen en chat individual
 export async function sendImage(chatId, file) {
+  console.log('[sendImage] Iniciando envío de imagen:', { chatId, fileName: file?.name, fileType: file?.type, fileSize: file?.size });
+  
+  if (!chatId) {
+    throw new Error('chat_id es requerido');
+  }
+  if (!file) {
+    throw new Error('El archivo de imagen es requerido');
+  }
+  
   const formData = new FormData();
   formData.append('chat_id', chatId);
-  formData.append('image', file);
+  // Asegurar que el archivo tenga un nombre válido
+  const fileName = file.name || 'image.jpg';
+  formData.append('image', file, fileName);
+  
+  console.log('[sendImage] FormData preparado, enviando a:', `${API_URL}/api/chat/message/image`);
+  
+  // Para FormData, NO debemos establecer Content-Type manualmente
+  // El navegador lo establecerá automáticamente con el boundary correcto
+  // fetchWithAuth maneja los errores y el token automáticamente
   const res = await fetchWithAuth(`${API_URL}/api/chat/message/image`, {
     method: 'POST',
     body: formData
   });
-  if (!res.ok) throw new Error('No se pudo enviar la imagen');
-  return res.json();
+  
+  const data = await res.json();
+  console.log('[sendImage] Respuesta recibida:', data);
+  return data;
 }
 
 // Enviar audio en chat individual

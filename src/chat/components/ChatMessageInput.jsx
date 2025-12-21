@@ -130,6 +130,7 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
           style={{ display: 'none' }}
         />
       </button>
+      {/*
       <button
         type="button"
         onClick={handleRecord}
@@ -150,6 +151,7 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
       >
         <FaMicrophone />
       </button>
+      */}
       <input
         ref={inputRef}
         type="text"

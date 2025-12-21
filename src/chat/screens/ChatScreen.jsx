@@ -8,6 +8,76 @@ import { useSocket } from "../SocketContext";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import defaultAvatar from '../../assets/user.png';
 import { API_URL } from '../api';
+import { FaImage } from 'react-icons/fa';
+
+// Componente para mostrar imágenes con loading y manejo de errores
+function ChatImage({ src, alt = "imagen", isMine }) {
+  const [status, setStatus] = useState('loading'); // 'loading' | 'loaded' | 'error'
+  
+  return (
+    <div style={{ 
+      position: 'relative', 
+      minWidth: 120, 
+      minHeight: 80,
+      maxWidth: 220,
+      borderRadius: 14,
+      overflow: 'hidden',
+      background: status !== 'loaded' ? (isMine ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent'
+    }}>
+      {status === 'loading' && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          color: isMine ? 'rgba(255,255,255,0.7)' : '#8696a6'
+        }}>
+          <div style={{
+            width: 24,
+            height: 24,
+            border: `2px solid ${isMine ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.1)'}`,
+            borderTopColor: isMine ? '#fff' : '#3a8dde',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <span style={{ fontSize: 11 }}>Cargando...</span>
+        </div>
+      )}
+      {status === 'error' && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+          gap: 8,
+          color: isMine ? 'rgba(255,255,255,0.7)' : '#8696a6'
+        }}>
+          <FaImage size={32} style={{ opacity: 0.5 }} />
+          <span style={{ fontSize: 11, textAlign: 'center' }}>No se pudo cargar la imagen</span>
+        </div>
+      )}
+      <img 
+        src={src} 
+        alt={alt}
+        onLoad={() => setStatus('loaded')}
+        onError={() => setStatus('error')}
+        style={{ 
+          maxWidth: 220, 
+          maxHeight: 200, 
+          borderRadius: 14, 
+          objectFit: 'cover', 
+          display: status === 'loaded' ? 'block' : 'none',
+          cursor: 'pointer'
+        }}
+        onClick={() => window.open(src, '_blank')}
+      />
+    </div>
+  );
+}
 
 // Función para decodificar JWT y obtener el user_id
 function getUserIdFromToken() {
@@ -507,7 +577,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                   padding: 4,
                   background: isMine ? 'linear-gradient(135deg, #3a8dde 0%, #5a9fe8 100%)' : '#fff',
                 }}>
-                  <img src={msg.image} alt="img" style={{ maxWidth: 220, maxHeight: 200, borderRadius: 14, objectFit: 'cover', display: 'block' }} />
+                  <ChatImage src={msg.image} isMine={isMine} />
                   <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 6px 2px' }}>
                     <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
                   </div>
@@ -617,6 +687,10 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           }
           .tic-flash {
             animation: ticFlash 0.7s;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
         `}</style>
       </div>

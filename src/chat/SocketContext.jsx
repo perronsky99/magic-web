@@ -22,7 +22,7 @@ export function SocketProvider({ user, token, children }) {
         
         // Escuchar lista inicial de usuarios online con sus estados
         socketRef.current.on("online_users", (users) => {
-            console.log("[SocketContext] online_users recibido:", users);
+            //console.log("[SocketContext] online_users recibido:", users);
             window.magic2k_onlineUsers = users;
             // Disparar evento custom para que los componentes se actualicen
             window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: users }));
@@ -30,7 +30,7 @@ export function SocketProvider({ user, token, children }) {
         
         // Escuchar cuando un usuario se conecta
         socketRef.current.on("user_online", ({ userId, state }) => {
-            console.log("[SocketContext] user_online:", userId, state);
+            //console.log("[SocketContext] user_online:", userId, state);
             const currentUsers = window.magic2k_onlineUsers || [];
             const existingIndex = currentUsers.findIndex(u => String(u.id) === String(userId));
             if (existingIndex >= 0) {
@@ -44,7 +44,7 @@ export function SocketProvider({ user, token, children }) {
         
         // Escuchar cuando un usuario cambia su estado
         socketRef.current.on("user_state_changed", ({ userId, state }) => {
-            console.log("[SocketContext] user_state_changed:", userId, state);
+            //console.log("[SocketContext] user_state_changed:", userId, state);
             const currentUsers = window.magic2k_onlineUsers || [];
             const existingIndex = currentUsers.findIndex(u => String(u.id) === String(userId));
             if (existingIndex >= 0) {

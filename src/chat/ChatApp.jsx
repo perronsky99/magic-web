@@ -7,7 +7,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import ChatScreen from "./screens/ChatScreen";
 import GroupChatScreen from "./screens/GroupChatScreen";
 import { FaUserFriends, FaComments, FaUserCircle } from "react-icons/fa";
-import { SocketProvider } from "./SocketContext";
+import { SocketProvider, useSocket } from "./SocketContext";
 import { API_URL } from './api';
 import defaultAvatar from '../assets/user.png';
 
@@ -26,6 +26,19 @@ const USER_STATES = [
   { key: 'busy', label: 'Ocupado', color: '#e74c3c', icon: '🔴' },
   { key: 'invisible', label: 'Invisible', color: '#b0b8c9', icon: '⚪' },
 ];
+
+// Componente que emite cambios de estado al socket
+function StateEmitter({ userId, userState }) {
+  const socket = useSocket();
+  
+  useEffect(() => {
+    if (socket && userId && userState) {
+      socket.emit("change_state", { userId, state: userState });
+    }
+  }, [socket, userId, userState]);
+  
+  return null;
+}
 
 export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
   const [section, setSection] = useState("chats"); // chats | groups | profile | chat | groupchat
@@ -51,6 +64,7 @@ export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
   // Sidebar MSN style
   return (
     <SocketProvider user={user} token={token}>
+      <StateEmitter userId={user?._id} userState={userState} />
       <div className="chat-app-main" style={{
         display: 'flex',
         height: '92vh',

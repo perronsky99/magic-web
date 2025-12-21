@@ -358,6 +358,16 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     }
   }, [chat?.otherUser?._id, chat?.otherUser?.id, chat?.otherUser?.userId, chat?.otherUser?.uid]);
 
+  // Estado para forzar re-render cuando cambian los usuarios online
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const handleUsersUpdated = () => {
+      forceUpdate(n => n + 1);
+    };
+    window.addEventListener('magic2k_users_updated', handleUsersUpdated);
+    return () => window.removeEventListener('magic2k_users_updated', handleUsersUpdated);
+  }, []);
+
   // Estados centralizados en config/userStates
 
   if (loadError) {

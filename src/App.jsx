@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import logo from './assets/image.png';
-import bgChat from './assets/bg-chat.jpeg';
+// import bgChat from './assets/bg-chat.jpeg';
 
 // Partículas
 import Particles from 'react-tsparticles';
@@ -145,7 +145,7 @@ function RegisterModal({ onClose }) {
     {/* Fondo */}
     <div
       className="mm-register-bg"
-      style={{ backgroundImage: `url(${bgChat})` }}
+      // style={{ backgroundImage: `url(${bgChat})` }}
       aria-hidden="true"
     />
 
@@ -291,7 +291,7 @@ function LoginModal({ onClose }) {
     {/* Fondo: imagen + overlay + partículas */}
     <div
       className="mm-login-bg"
-      style={{ backgroundImage: `url(${bgChat})` }}
+      // style={{ backgroundImage: `url(${bgChat})` }}
       aria-hidden="true"
     />
 

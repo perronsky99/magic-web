@@ -492,17 +492,17 @@ function AppRoutes() {
 
                     <div className="phone-screen">
                       <div className="msg other">
-                        <div className="bubble">Bro, ¿ya quedó andando el deploy?</div>
+                        <div className="bubble">Bro, te escribí y llegó al toque 👀</div>
                         <div className="time">22:10</div>
                       </div>
 
                       <div className="msg me">
-                        <div className="bubble">Quedó hermoso 😎 ✓✓</div>
+                        <div className="bubble">Obvio 😎 real-time, como tiene que ser. ✓✓</div>
                         <div className="time">22:11</div>
                       </div>
 
                       <div className="msg other">
-                        <div className="bubble">Probemos las notas de voz.</div>
+                        <div className="bubble">Probemos una nota de voz 🎙️</div>
                         <div className="time">22:11</div>
                       </div>
                     </div>

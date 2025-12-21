@@ -1,6 +1,21 @@
+import React from 'react';
+import './App.css';
+import logo from './assets/image.png';
+import bgChat from './assets/bg-chat.jpeg';
+
+// Partículas
+import Particles from 'react-tsparticles';
+
+import ChatApp from './chat/ChatApp';
+import { API_URL } from './chat/api';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import ProtectedRoute from './routes/ProtectedRoute';
+import { AuthProvider, useAuth } from './chat/AuthContext.jsx';
+
 // Header responsive con menú hamburguesa
 function HeaderResponsive() {
   const [menuOpen, setMenuOpen] = React.useState(false);
+
   React.useEffect(() => {
     const close = () => setMenuOpen(false);
     window.addEventListener('resize', close);
@@ -10,34 +25,34 @@ function HeaderResponsive() {
       window.removeEventListener('scroll', close);
     };
   }, []);
+
   return (
     <header className="header">
       <div className="logo-container">
         <img src={logo} alt="Logo de Magic2k" className="logo" />
       </div>
-      <button className="nav-toggle" aria-label="Abrir menú" onClick={() => setMenuOpen(o => !o)}>
-        <span style={{display:'block',width:28,height:28}}>
-          <svg width="28" height="28" viewBox="0 0 28 28"><rect y="4" width="28" height="3" rx="1.5" fill="#3a8dde"/><rect y="12.5" width="28" height="3" rx="1.5" fill="#3a8dde"/><rect y="21" width="28" height="3" rx="1.5" fill="#3a8dde"/></svg>
+
+      <button
+        className="nav-toggle"
+        aria-label="Abrir menú"
+        onClick={() => setMenuOpen(o => !o)}
+      >
+        <span style={{ display: 'block', width: 28, height: 28 }}>
+          <svg width="28" height="28" viewBox="0 0 28 28">
+            <rect y="4" width="28" height="3" rx="1.5" fill="#3a8dde" />
+            <rect y="12.5" width="28" height="3" rx="1.5" fill="#3a8dde" />
+            <rect y="21" width="28" height="3" rx="1.5" fill="#3a8dde" />
+          </svg>
         </span>
       </button>
+
       <nav className={menuOpen ? 'nav open' : 'nav'} onClick={() => setMenuOpen(false)}>
-        <a href="#features">Características</a>
+        <a href="#features">Features</a>
+        <a href="#download">Descargar</a>
       </nav>
     </header>
   );
 }
-
-import React from 'react';
-import './App.css';
-import logo from './assets/image.png';
-import bgChat from './assets/bg-chat.jpeg';
-// Agrego import para el fondo de partículas
-import Particles from 'react-tsparticles';
-import ChatApp from './chat/ChatApp';
-import { API_URL } from './chat/api';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import ProtectedRoute from './routes/ProtectedRoute';
-import { AuthProvider, useAuth } from './chat/AuthContext.jsx';
 
 // --- RegisterModal ---
 function RegisterModal({ onClose }) {
@@ -92,8 +107,6 @@ function RegisterModal({ onClose }) {
     try {
       let avatarUrl = '';
       if (form.avatar) {
-        // Simulación de subida de imagen (debería ser un endpoint real)
-        // Aquí solo se usa un FileReader para previsualización, pero deberías subir la imagen al backend
         avatarUrl = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
@@ -101,6 +114,7 @@ function RegisterModal({ onClose }) {
           reader.readAsDataURL(form.avatar);
         });
       }
+
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,8 +127,10 @@ function RegisterModal({ onClose }) {
           avatar: avatarUrl || getInitials()
         })
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.msg || 'Error de registro');
+
       doLogin(data);
       setLoading(false);
       navigate('/home');
@@ -244,7 +260,7 @@ function LoginModal({ onClose }) {
 function AppRoutes() {
   const { auth, logout } = useAuth();
   const navigate = useNavigate();
-  // Configuración de partículas mágicas
+
   const particlesOptions = {
     fullScreen: { enable: false },
     background: { color: 'transparent' },
@@ -252,10 +268,10 @@ function AppRoutes() {
       number: { value: 60, density: { enable: true, value_area: 800 } },
       color: { value: ['#00cfff', '#5f4cff', '#caff87', '#fff'] },
       shape: { type: 'circle' },
-      opacity: { value: 0.25, random: true },
+      opacity: { value: 0.20, random: true },
       size: { value: 3, random: true },
-      move: { enable: true, speed: 1.2, direction: 'none', out_mode: 'out' },
-      links: { enable: true, color: '#3a8dde', opacity: 0.12, width: 1 },
+      move: { enable: true, speed: 1.0, direction: 'none', out_mode: 'out' },
+      links: { enable: true, color: '#3a8dde', opacity: 0.10, width: 1 },
     },
     interactivity: {
       events: { onHover: { enable: true, mode: 'repulse' }, resize: true },
@@ -263,92 +279,193 @@ function AppRoutes() {
     },
     detectRetina: true,
   };
+
   return (
     <Routes>
       {/* Landing pública */}
-      <Route path="/" element={
-        <div className="app magic-landing">
-          {/* Fondo de partículas mágicas */}
-          <Particles className="magic-particles" id="tsparticles" options={particlesOptions} />
-          <HeaderResponsive />
-          <main className="hero">
-            <h1 className="magic-title">Conéctate con <br /> el mundo</h1>
-            <p className="subtitle">Explorá el futuro de la comunicación en línea.</p>
-            <div className="hero-buttons">
-              <button className="btn primary magic-btn" onClick={() => navigate('/login')}>Iniciar sesión</button>
-              <button className="btn secondary magic-btn">Saber más</button>
-            </div>
-          </main>
-          <section className="about magic-card">
-            <h2>Sobre nosotros</h2>
-            <p>Nos apasiona construir experiencias simples, privadas y potentes para que chatear vuelva a ser algo mágico.</p>
-          </section>
-          <section className="features magic-features" id="features">
-            <div className="feature magic-feature">
-              <div className="icon green">
-                <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><path d="M19 3L22.5 15H35L24.5 23L28 35L19 27L10 35L13.5 23L3 15H15.5L19 3Z" fill="#caff87" stroke="#b6ffb2" strokeWidth="2" /></svg>
+      <Route
+        path="/"
+        element={
+          <div className="app magic-landing">
+            <Particles className="magic-particles" id="tsparticles" options={particlesOptions} />
+
+            <HeaderResponsive />
+
+            <main className="hero">
+              <div className="hero-grid">
+                {/* IZQUIERDA */}
+                <div className="hero-left">
+                  <div className="hero-badge">
+                    <span>⚡</span>
+                    <span>Real-time • tics • notas de voz</span>
+                  </div>
+
+                  <h1 className="magic-title">
+                    Volvé a chatear como antes.<br />
+                    <span className="magic-gradient">Mejor que antes.</span>
+                  </h1>
+
+                  <p className="subtitle">
+                    Magic 2K trae la nostalgia de los 2000 con una experiencia moderna:
+                    mensajes en tiempo real, tics de entrega/lectura y notas de voz.
+                  </p>
+
+                  <div className="hero-buttons">
+                    <button className="btn primary" onClick={() => navigate('/login')}>
+                      Iniciar sesión
+                    </button>
+                    <button className="btn secondary" onClick={() => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' })}>
+                      Descargar
+                    </button>
+                  </div>
+
+                  <div className="download-row" id="download">
+                    <div className="store-btn disabled">
+                      <div className="store-ico">🤖</div>
+                      <div className="store-text">
+                        <div className="store-title">Descargar en Android</div>
+                        <div className="store-sub">Próximamente</div>
+                      </div>
+                    </div>
+
+                    <div className="store-btn disabled">
+                      <div className="store-ico">🍏</div>
+                      <div className="store-text">
+                        <div className="store-title">Descargar en iOS</div>
+                        <div className="store-sub">Próximamente</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="download-note">
+                    *Si todavía no está publicada en tu tienda, vas a ver “Próximamente”.
+                  </div>
+
+                  <div className="hero-chips">
+                    <div className="hero-chip">⚡ Socket real-time</div>
+                    <div className="hero-chip">✓✓ Tics de estado</div>
+                    <div className="hero-chip">🎙️ Notas de voz</div>
+                    <div className="hero-chip">✨ Estilo 2K sin copiar</div>
+                  </div>
+                </div>
+
+                {/* DERECHA: CELULAR */}
+                <div className="hero-right">
+                  <div className="phone">
+                    <div className="phone-top">
+                      <div className="phone-back">‹</div>
+                      <div className="phone-app">
+                        <span className="phone-app-icon">M</span>
+                        <span className="phone-app-name">Magic 2K</span>
+                      </div>
+                      <div className="phone-actions">
+                        <span>📞</span>
+                        <span>⚙️</span>
+                      </div>
+                    </div>
+
+                    <div className="phone-screen">
+                      <div className="msg other">
+                        <div className="bubble">Bro, ¿ya quedó andando el deploy?</div>
+                        <div className="time">22:10</div>
+                      </div>
+
+                      <div className="msg me">
+                        <div className="bubble">Quedó hermoso 😎 ✓✓</div>
+                        <div className="time">22:11</div>
+                      </div>
+
+                      <div className="msg other">
+                        <div className="bubble">Probemos las notas de voz.</div>
+                        <div className="time">22:11</div>
+                      </div>
+                    </div>
+
+                    <div className="phone-input">
+                      <div className="phone-input-left">🔎</div>
+                      <div className="phone-placeholder">Escribí un mensaje…</div>
+                      <div className="phone-input-right">
+                        <span className="round">🎤</span>
+                        <span className="round">➤</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3>Mensajería instantánea</h3>
-              <p>Chateá en tiempo real con tus amigos, sin interrupciones ni complicaciones.</p>
-            </div>
-            <div className="feature magic-feature">
-              <div className="icon blue">
-                <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="16" fill="#00cfff" stroke="#5f4cff" strokeWidth="2" /><path d="M13 19L17 23L25 15" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" /></svg>
+            </main>
+
+            <section className="features magic-features" id="features">
+              <div className="magic-feature">
+                <h3>⚡ Mensajes en tiempo real</h3>
+                <p>Chat fluido con sockets.</p>
               </div>
-              <h3>Privacidad y seguridad</h3>
-              <p>Tu información es solo tuya. Protegemos cada mensaje y cada llamada.</p>
-            </div>
-            <div className="feature magic-feature">
-              <div className="icon purple">
-                <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><rect x="6" y="10" width="26" height="18" rx="5" fill="#5f4cff" stroke="#00cfff" strokeWidth="2" /><circle cx="19" cy="19" r="4" fill="#fff" /><rect x="12" y="26" width="14" height="3" rx="1.5" fill="#caff87" /></svg>
+              <div className="magic-feature">
+                <h3>✓✓ Tics de estado</h3>
+                <p>Entrega y lectura claras.</p>
               </div>
-              <h3>Llamadas de voz y video</h3>
-              <p>Conectate como si estuvieras ahí, con audio y video de alta calidad.</p>
-            </div>
-          </section>
-          <footer className="footer magic-footer">
-            <p>Hecho con 💙 por vos. Proyecto en desarrollo.</p>
-          </footer>
-        </div>
-      } />
+              <div className="magic-feature">
+                <h3>🎙️ Notas de voz</h3>
+                <p>Audios fáciles y rápidos.</p>
+              </div>
+              <div className="magic-feature">
+                <h3>✨ Estilo 2K sin copiar</h3>
+                <p>Clásico pero moderno.</p>
+              </div>
+            </section>
+
+            <footer className="footer magic-footer">
+              <div className="footer-inner">
+                <div>Magic 2K © {new Date().getFullYear()}</div>
+                <div className="footer-links">
+                  <a href="#" onClick={(e) => e.preventDefault()}>Privacidad</a>
+                  <a href="#" onClick={(e) => e.preventDefault()}>Términos</a>
+                  <a href="#" onClick={(e) => e.preventDefault()}>Contacto</a>
+                </div>
+              </div>
+            </footer>
+          </div>
+        }
+      />
 
       {/* Login */}
-      <Route path="/login" element={
-        <LoginModal onClose={() => navigate('/')} />
-      } />
+      <Route path="/login" element={<LoginModal onClose={() => navigate('/')} />} />
+
       {/* Registro */}
-      <Route path="/register" element={
-        <RegisterModal onClose={() => navigate('/')} />
-      } />
+      <Route path="/register" element={<RegisterModal onClose={() => navigate('/')} />} />
 
       {/* Home protegida */}
-      <Route path="/home" element={
-        <ProtectedRoute isAuth={!!auth.token && !!auth.user}>
-          <div style={{
-            minHeight: '100vh',
-            height: '100vh',
-            width: '100vw',
-            background: '#181a22',
-            margin: 0,
-            padding: 0,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            zIndex: 100,
-            overflow: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <ChatApp
-              token={auth.token}
-              user={auth.user}
-              onLogout={logout}
-              onUserUpdate={updatedUser => setAuth(a => ({ ...a, user: updatedUser }))}
-            />
-          </div>
-        </ProtectedRoute>
-      } />
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute isAuth={!!auth.token && !!auth.user}>
+            <div
+              style={{
+                minHeight: '100vh',
+                height: '100vh',
+                width: '100vw',
+                background: '#181a22',
+                margin: 0,
+                padding: 0,
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                zIndex: 100,
+                overflow: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ChatApp
+                token={auth.token}
+                user={auth.user}
+                onLogout={logout}
+                onUserUpdate={updatedUser => setAuth(a => ({ ...a, user: updatedUser }))}
+              />
+            </div>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Redirección por defecto */}
       <Route path="*" element={<Navigate to="/" replace />} />

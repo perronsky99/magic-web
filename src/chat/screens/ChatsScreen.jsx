@@ -164,6 +164,8 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         lastMessageText = <span style={{display:'flex',alignItems:'center',gap:6}}><span role="img" aria-label="imagen">🖼️</span> Imagen</span>;
       } else if (lastMessageType === 'AUDIO') {
         lastMessageText = <span style={{display:'flex',alignItems:'center',gap:6}}><span role="img" aria-label="audio">🔊</span> Audio</span>;
+      } else if (!chat.last_message_text || chat.last_message_text === 'Sin mensajes') {
+        lastMessageText = <span style={{display:'flex',alignItems:'center',gap:6}}><span role="img" aria-label="vacío">💬</span> Sin mensajes</span>;
       }
       const normalizedChat = {
         ...chat,

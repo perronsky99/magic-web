@@ -217,44 +217,100 @@ function LoginModal({ onClose }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: `url(${bgChat}) center center / cover no-repeat`,
-      animation: 'fadeIn .2s'
-    }}>
-      <div style={{
-        background: 'rgba(32,36,54,0.92)',
-        borderRadius: 22,
-        boxShadow: '0 8px 32px #0005',
-        padding: '0',
-        position: 'relative',
-        width: '100%',
-        maxWidth: 350,
-        minWidth: 260,
-        minHeight: 320,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: '1.5px solid #23263a',
-        backdropFilter: 'blur(2px)',
-      }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', fontSize: 28, cursor: 'pointer', color: '#3a8dde', zIndex: 2, lineHeight: 1 }} title="Cerrar">×</button>
-        <form onSubmit={handleLogin} style={{ width: '100%', maxWidth: 260, padding: '32px 18px 24px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ fontWeight: 800, letterSpacing: 1, marginBottom: 18, fontSize: 22, color: '#eaf2ff', textShadow: '0 2px 8px #3a8dde22' }}>Iniciar sesión</h2>
-          <input type="email" placeholder="Email" value={login.email} onChange={e => setLogin(l => ({ ...l, email: e.target.value }))} style={{ width: '100%', maxWidth: 224, marginBottom: 14, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15, outline: 'none', transition: 'border .2s' }} required />
-          <input type="password" placeholder="Contraseña" value={login.password} onChange={e => setLogin(l => ({ ...l, password: e.target.value }))} style={{ width: '100%', maxWidth: 224, marginBottom: 18, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15, outline: 'none', transition: 'border .2s' }} required />
-          <button type="submit" style={{ width: '100%', maxWidth: 224, padding: 12, borderRadius: 10, background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', fontWeight: 700, border: 'none', boxShadow: '0 1px 8px #3a8dde22', marginBottom: 8, letterSpacing: 1, fontSize: 16, transition: 'background .2s' }} disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button>
-          <div style={{ marginTop: 8, textAlign: 'center' }}>
-            <span style={{ color: '#eaf2ff', fontSize: 14 }}>¿No tienes cuenta? </span>
-            <button type="button" style={{ background: 'none', border: 'none', color: '#3a8dde', fontWeight: 700, cursor: 'pointer', fontSize: 14, textDecoration: 'underline' }} onClick={() => navigate('/register')}>Clickea aquí</button>
-          </div>
-          {error && <div style={{ color: '#ff4d4f', marginTop: 10, fontWeight: 600, fontSize: 14 }}>{error}</div>}
-        </form>
+  <div className="mm-login">
+    {/* Fondo: imagen + overlay + partículas */}
+    <div
+      className="mm-login-bg"
+      style={{ backgroundImage: `url(${bgChat})` }}
+      aria-hidden="true"
+    />
+
+    <Particles
+      className="mm-login-particles"
+      id="tsparticles-login"
+      options={{
+        fullScreen: { enable: false },
+        background: { color: "transparent" },
+        particles: {
+          number: { value: 46, density: { enable: true, value_area: 900 } },
+          color: { value: ["#00cfff", "#7c3aed", "#ffffff"] },
+          shape: { type: "circle" },
+          opacity: { value: 0.18, random: true },
+          size: { value: 3, random: true },
+          move: { enable: true, speed: 0.9, direction: "none", out_mode: "out" },
+          links: { enable: true, color: "#3a8dde", opacity: 0.08, width: 1 },
+        },
+        interactivity: {
+          events: { onHover: { enable: true, mode: "repulse" }, resize: true },
+          modes: { repulse: { distance: 90, duration: 0.35 } },
+        },
+        detectRetina: true,
+      }}
+    />
+
+    <div className="mm-login-card">
+      <button className="mm-login-close" onClick={onClose} title="Cerrar" aria-label="Cerrar">
+        ×
+      </button>
+
+      <div className="mm-login-header">
+        <img src={logo} alt="Magic2k" className="mm-login-logo" />
+        <div className="mm-login-title">Iniciar sesión</div>
+        <div className="mm-login-sub">
+          Volvé a chatear como antes. <span className="mm-login-sub2">Mejor que antes.</span>
+        </div>
       </div>
+
+      <form className="mm-login-form" onSubmit={handleLogin}>
+        <label className="mm-login-label">
+          <span>Email</span>
+          <div className="mm-login-field">
+            <span className="mm-login-ico">✉️</span>
+            <input
+              type="email"
+              placeholder="tu@email.com"
+              value={login.email}
+              onChange={e => setLogin(l => ({ ...l, email: e.target.value }))}
+              required
+            />
+          </div>
+        </label>
+
+        <label className="mm-login-label">
+          <span>Contraseña</span>
+          <div className="mm-login-field">
+            <span className="mm-login-ico">🔒</span>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={login.password}
+              onChange={e => setLogin(l => ({ ...l, password: e.target.value }))}
+              required
+            />
+          </div>
+        </label>
+
+        <button className="mm-login-btn" type="submit" disabled={loading}>
+          <span className="mm-login-btn-glow" aria-hidden="true" />
+          {loading ? "Entrando..." : "Entrar"}
+        </button>
+
+        {error && <div className="mm-login-error">{error}</div>}
+
+        <div className="mm-login-footer">
+          <span>¿No tenés cuenta?</span>
+          <button
+            type="button"
+            className="mm-login-link"
+            onClick={() => navigate("/register")}
+          >
+            Creala acá ✨
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }
 
 function AppRoutes() {

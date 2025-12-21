@@ -56,7 +56,7 @@ export function SocketProvider({ user, token, children }) {
         
         // Escuchar cuando un usuario se desconecta
         socketRef.current.on("user_offline", (userId) => {
-            console.log("[SocketContext] user_offline:", userId);
+            // console.log("[SocketContext] user_offline:", userId);
             const currentUsers = window.magic2k_onlineUsers || [];
             window.magic2k_onlineUsers = currentUsers.filter(u => String(u.id) !== String(userId));
             window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: window.magic2k_onlineUsers }));

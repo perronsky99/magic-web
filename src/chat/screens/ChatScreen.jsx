@@ -367,7 +367,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   
   useEffect(() => {
     const handleUsersUpdated = (event) => {
-      console.log('[ChatScreen] magic2k_users_updated recibido:', event.detail);
+      // console.log('[ChatScreen] magic2k_users_updated recibido:', event.detail);
       setOnlineUsersState(event.detail || []);
     };
     window.addEventListener('magic2k_users_updated', handleUsersUpdated);

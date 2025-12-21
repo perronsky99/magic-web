@@ -157,6 +157,14 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
       }
       const other = (participants || []).find(u => u && u._id !== user._id && u.email !== user.email) || chat.otherUser;
       const isOnline = other?._id && String(other._id) !== String(user._id) && onlineUsers.includes(String(other._id));
+      // Mostrar texto amigable según el tipo de mensaje
+      let lastMessageText = chat.last_message_text || 'Sin mensajes';
+      const lastMessageType = chat.last_message_type || 'TEXT';
+      if (lastMessageType === 'IMAGE') {
+        lastMessageText = <span style={{display:'flex',alignItems:'center',gap:6}}><span role="img" aria-label="imagen">🖼️</span> Imagen</span>;
+      } else if (lastMessageType === 'AUDIO') {
+        lastMessageText = <span style={{display:'flex',alignItems:'center',gap:6}}><span role="img" aria-label="audio">🔊</span> Audio</span>;
+      }
       const normalizedChat = {
         ...chat,
         participants: participants,
@@ -209,7 +217,7 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
           {/* Info */}
           <span style={{ flex: 1, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2, position: 'relative' }}>
             <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1c3a', letterSpacing: 0.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'Inter, Roboto, system-ui' }}>{other?.firstName || other?.email || 'Usuario'}</span>
-            <span style={{ color: '#6b7280', fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500, fontFamily: 'Inter, Roboto, system-ui' }}>{normalizedChat.last_message_text || 'Sin mensajes'}</span>
+            <span style={{ color: '#6b7280', fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500, fontFamily: 'Inter, Roboto, system-ui' }}>{lastMessageText}</span>
           </span>
           {/* Hora y badge */}
           <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 70 }}>

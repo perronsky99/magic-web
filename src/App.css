@@ -1101,3 +1101,222 @@ a { text-decoration: none; color: inherit; }
   text-decoration: underline;
 }
 .mm-login-link:hover{ color: #fff; }
+
+/* =========================
+   REGISTER MAGIC (PRO)
+   ========================= */
+.mm-register{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.mm-register-bg{
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(1.05);
+  transform: scale(1.02);
+}
+
+.mm-register::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(1100px 700px at 15% 12%, rgba(0,207,255,0.20), transparent 60%),
+    radial-gradient(950px 650px at 85% 15%, rgba(124,58,237,0.18), transparent 62%),
+    rgba(10,12,18,0.58);
+  backdrop-filter: blur(8px);
+}
+
+.mm-register-particles{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+}
+
+.mm-register-card{
+  position:relative;
+  z-index:2;
+  width:min(460px,94vw);
+  border-radius:24px;
+  background:rgba(18,22,34,0.74);
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:0 30px 90px rgba(0,0,0,0.45);
+  padding:18px;
+  overflow:hidden;
+}
+
+.mm-register-card::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:conic-gradient(
+    from 180deg,
+    rgba(0,207,255,0),
+    rgba(0,207,255,.55),
+    rgba(124,58,237,.55),
+    rgba(255,255,255,.15),
+    rgba(0,207,255,0)
+  );
+  filter:blur(12px);
+  opacity:.6;
+  animation:mmSpin 6s linear infinite;
+}
+
+.mm-register-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:#eaf2ff;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.mm-register-header{
+  text-align:center;
+  padding:10px 0;
+}
+
+.mm-register-logo{
+  width:140px;
+  margin-bottom:6px;
+  filter:drop-shadow(0 10px 24px rgba(0,207,255,.18));
+}
+
+.mm-register-title{
+  font-size:22px;
+  font-weight:950;
+  color:#eaf2ff;
+}
+
+.mm-register-sub{
+  font-size:13px;
+  font-weight:800;
+  color:rgba(234,242,255,.75);
+}
+.mm-register-sub span{
+  background:linear-gradient(135deg,#00cfff,#7c3aed);
+  -webkit-background-clip:text;
+  color:transparent;
+}
+
+.mm-register-avatar{
+  display:grid;
+  place-items:center;
+  gap:8px;
+  margin:14px 0;
+}
+
+.mm-register-avatar img,
+.mm-register-avatar-placeholder{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#00cfff,#7c3aed);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:950;
+  font-size:24px;
+  box-shadow:0 12px 30px rgba(0,207,255,.25);
+}
+
+.mm-register-avatar button{
+  background:none;
+  border:none;
+  color:#9fe8ff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.mm-register-form{
+  display:grid;
+  gap:12px;
+}
+
+.mm-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.mm-field{
+  display:grid;
+  gap:6px;
+  font-size:12px;
+  font-weight:900;
+  color:rgba(234,242,255,.85);
+}
+
+.mm-field input{
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:#eaf2ff;
+  font-weight:800;
+}
+
+.mm-field input:focus{
+  outline:none;
+  border-color:rgba(0,207,255,.45);
+  box-shadow:0 0 0 4px rgba(0,207,255,.12);
+}
+
+.mm-register-btn{
+  margin-top:6px;
+  padding:12px;
+  border-radius:14px;
+  font-weight:950;
+  border:none;
+  cursor:pointer;
+  color:#fff;
+  background:linear-gradient(135deg,#00cfff,#7c3aed);
+  box-shadow:0 20px 50px rgba(0,207,255,.22);
+  position:relative;
+  overflow:hidden;
+}
+
+.mm-register-btn-glow{
+  position:absolute;
+  inset:-50px;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 45%);
+  animation:mmGlow 3s ease-in-out infinite;
+}
+
+.mm-register-error{
+  background:rgba(255,77,79,.14);
+  border:1px solid rgba(255,77,79,.25);
+  color:#ffb3b3;
+  padding:10px;
+  border-radius:14px;
+  font-size:13px;
+  font-weight:900;
+}
+
+.mm-register-footer{
+  text-align:center;
+  margin-top:8px;
+  font-size:13px;
+  color:rgba(234,242,255,.75);
+}
+.mm-register-footer button{
+  background:none;
+  border:none;
+  color:#9fe8ff;
+  font-weight:950;
+  cursor:pointer;
+}

@@ -141,51 +141,121 @@ function RegisterModal({ onClose }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(20,22,34,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', animation: 'fadeIn .2s'
-    }}>
-      <div style={{
-        background: 'rgba(32,36,54,0.98)',
-        borderRadius: 22,
-        boxShadow: '0 8px 32px #0005',
-        padding: '0',
-        position: 'relative',
-        width: '100%',
-        maxWidth: 370,
-        minWidth: 260,
-        minHeight: 420,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: '1.5px solid #23263a',
-      }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', fontSize: 28, cursor: 'pointer', color: '#3a8dde', zIndex: 2, lineHeight: 1 }} title="Cerrar">×</button>
-        <form onSubmit={handleRegister} style={{ width: '100%', maxWidth: 260, padding: '32px 18px 18px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h2 style={{ fontWeight: 800, letterSpacing: 1, marginBottom: 18, fontSize: 22, color: '#eaf2ff', textShadow: '0 2px 8px #3a8dde22' }}>Crear cuenta</h2>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
-            {form.avatar ? (
-              <img src={URL.createObjectURL(form.avatar)} alt="avatar" style={{ width: 48, height: 48, borderRadius: 24, objectFit: 'cover', border: '2px solid #3a8dde' }} />
-            ) : (
-              <div style={{ width: 48, height: 48, borderRadius: 24, background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 22, border: '2px solid #3a8dde' }}>{getInitials()}</div>
-            )}
-            <button type="button" style={{ marginLeft: 12, background: 'none', border: 'none', color: '#3a8dde', fontWeight: 600, cursor: 'pointer', fontSize: 14 }} onClick={() => fileInputRef.current.click()}>{form.avatar ? 'Cambiar imagen' : 'Subir imagen'}</button>
-            <input ref={fileInputRef} type="file" name="avatar" accept="image/*" style={{ display: 'none' }} onChange={handleChange} />
-          </div>
-          <input type="text" name="firstName" placeholder="Nombre" value={form.firstName} onChange={handleChange} style={{ width: '100%', marginBottom: 10, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15 }} required />
-          <input type="text" name="lastName" placeholder="Apellido" value={form.lastName} onChange={handleChange} style={{ width: '100%', marginBottom: 10, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15 }} required />
-          <input type="text" name="nickname" placeholder="Apodo" value={form.nickname} onChange={handleChange} style={{ width: '100%', marginBottom: 10, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15 }} required />
-          <input type="email" name="email" placeholder="Correo electrónico" value={form.email} onChange={handleChange} style={{ width: '100%', marginBottom: 10, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15 }} required />
-          <input type="password" name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} style={{ width: '100%', marginBottom: 10, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15 }} required />
-          <input type="password" name="repeatPassword" placeholder="Confirmar contraseña" value={form.repeatPassword} onChange={handleChange} style={{ width: '100%', marginBottom: 14, padding: 10, borderRadius: 10, border: '1.5px solid #2e3650', background: '#23263a', color: '#eaf2ff', fontSize: 15 }} required />
-          <button type="submit" style={{ width: '100%', padding: 12, borderRadius: 10, background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', fontWeight: 700, border: 'none', boxShadow: '0 1px 8px #3a8dde22', marginBottom: 8, letterSpacing: 1, fontSize: 16, transition: 'background .2s' }} disabled={loading}>{loading ? 'Creando...' : 'Crear cuenta'}</button>
-          {error && <div style={{ color: '#ff4d4f', marginTop: 10, fontWeight: 600, fontSize: 14 }}>{error}</div>}
-        </form>
+  <div className="mm-register">
+    {/* Fondo */}
+    <div
+      className="mm-register-bg"
+      style={{ backgroundImage: `url(${bgChat})` }}
+      aria-hidden="true"
+    />
+
+    {/* Partículas */}
+    <Particles
+      className="mm-register-particles"
+      id="tsparticles-register"
+      options={{
+        fullScreen: { enable: false },
+        background: { color: "transparent" },
+        particles: {
+          number: { value: 52, density: { enable: true, value_area: 900 } },
+          color: { value: ["#00cfff", "#7c3aed", "#ffffff"] },
+          shape: { type: "circle" },
+          opacity: { value: 0.18, random: true },
+          size: { value: 3, random: true },
+          move: { enable: true, speed: 0.9, direction: "none", out_mode: "out" },
+          links: { enable: true, color: "#3a8dde", opacity: 0.08, width: 1 },
+        },
+        interactivity: {
+          events: { onHover: { enable: true, mode: "repulse" }, resize: true },
+          modes: { repulse: { distance: 90, duration: 0.35 } },
+        },
+        detectRetina: true,
+      }}
+    />
+
+    <div className="mm-register-card">
+      <button className="mm-register-close" onClick={onClose}>×</button>
+
+      <div className="mm-register-header">
+        <img src={logo} alt="Magic2k" className="mm-register-logo" />
+        <div className="mm-register-title">Crear cuenta</div>
+        <div className="mm-register-sub">
+          Empezá a chatear con <span>estilo 2K ✨</span>
+        </div>
       </div>
+
+      {/* Avatar */}
+      <div className="mm-register-avatar">
+        {form.avatar ? (
+          <img src={URL.createObjectURL(form.avatar)} alt="avatar" />
+        ) : (
+          <div className="mm-register-avatar-placeholder">
+            {getInitials() || "M"}
+          </div>
+        )}
+        <button type="button" onClick={() => fileInputRef.current.click()}>
+          {form.avatar ? "Cambiar imagen" : "Subir imagen"}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          name="avatar"
+          accept="image/*"
+          hidden
+          onChange={handleChange}
+        />
+      </div>
+
+      <form className="mm-register-form" onSubmit={handleRegister}>
+        <div className="mm-grid">
+          <div className="mm-field">
+            <span>Nombre</span>
+            <input name="firstName" value={form.firstName} onChange={handleChange} required />
+          </div>
+          <div className="mm-field">
+            <span>Apellido</span>
+            <input name="lastName" value={form.lastName} onChange={handleChange} required />
+          </div>
+        </div>
+
+        <div className="mm-field">
+          <span>Apodo</span>
+          <input name="nickname" value={form.nickname} onChange={handleChange} required />
+        </div>
+
+        <div className="mm-field">
+          <span>Email</span>
+          <input type="email" name="email" value={form.email} onChange={handleChange} required />
+        </div>
+
+        <div className="mm-grid">
+          <div className="mm-field">
+            <span>Contraseña</span>
+            <input type="password" name="password" value={form.password} onChange={handleChange} required />
+          </div>
+          <div className="mm-field">
+            <span>Confirmar</span>
+            <input type="password" name="repeatPassword" value={form.repeatPassword} onChange={handleChange} required />
+          </div>
+        </div>
+
+        <button className="mm-register-btn" type="submit" disabled={loading}>
+          <span className="mm-register-btn-glow" />
+          {loading ? "Creando..." : "Crear cuenta"}
+        </button>
+
+        {error && <div className="mm-register-error">{error}</div>}
+
+        <div className="mm-register-footer">
+          <span>¿Ya tenés cuenta?</span>
+          <button type="button" onClick={() => navigate("/login")}>
+            Iniciar sesión
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }
 
 function LoginModal({ onClose }) {

@@ -358,13 +358,17 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     }
   }, [chat?.otherUser?._id, chat?.otherUser?.id, chat?.otherUser?.userId, chat?.otherUser?.uid]);
 
-  // Estado para forzar re-render cuando cambian los usuarios online
-  const [, forceUpdate] = useState(0);
+  // Estado para los usuarios online (con re-render cuando cambian)
+  const [onlineUsersState, setOnlineUsersState] = useState(() => window.magic2k_onlineUsers || []);
+  
   useEffect(() => {
-    const handleUsersUpdated = () => {
-      forceUpdate(n => n + 1);
+    const handleUsersUpdated = (event) => {
+      console.log('[ChatScreen] magic2k_users_updated recibido:', event.detail);
+      setOnlineUsersState(event.detail || []);
     };
     window.addEventListener('magic2k_users_updated', handleUsersUpdated);
+    // También sincronizar al montar
+    setOnlineUsersState(window.magic2k_onlineUsers || []);
     return () => window.removeEventListener('magic2k_users_updated', handleUsersUpdated);
   }, []);
 
@@ -493,14 +497,10 @@ export default function ChatScreen({ chat, user, token, onBack }) {
               ) : (
                 chat?.otherUser?.email || "Usuario"
               )}
-              {/* Estado visual del otro usuario (usando onlineUsers como array de objetos) */}
+              {/* Estado visual del otro usuario */}
               {(() => {
-                let onlineUsers = [];
-                try {
-                  onlineUsers = window.magic2k_onlineUsers || [];
-                } catch {}
                 const otherId = chat?.otherUser?._id || chat?.otherUser?.id || chat?.otherUser?.userId || chat?.otherUser?.uid;
-                const userObj = onlineUsers.find(u => String(u.id) === String(otherId));
+                const userObj = onlineUsersState.find(u => String(u.id) === String(otherId));
                 const stateKey = userObj?.state || 'invisible';
                 const s = USER_STATES.find(x => x.key === stateKey);
                 return s ? (

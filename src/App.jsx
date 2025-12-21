@@ -47,8 +47,8 @@ function HeaderResponsive() {
       </button>
 
       <nav className={menuOpen ? 'nav open' : 'nav'} onClick={() => setMenuOpen(false)}>
-        <a href="#features">Features</a>
-        <a href="#download">Descargar</a>
+        {/* <a href="#features">Features</a> */}
+        <a href="/login">Iniciar Sesión</a>
       </nav>
     </header>
   );

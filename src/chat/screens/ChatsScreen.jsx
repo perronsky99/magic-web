@@ -1,3 +1,41 @@
+// Toast simple para notificaciones
+function Toast({ open, onClose, message, sender, avatar }) {
+  if (!open) return null;
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 24,
+      right: 24,
+      zIndex: 9999,
+      background: '#fff',
+      borderRadius: 14,
+      boxShadow: '0 4px 24px #3a8dde33',
+      padding: '14px 22px 14px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      minWidth: 220,
+      maxWidth: 340,
+      gap: 12,
+      fontFamily: 'Inter, Roboto, system-ui',
+      border: '1.5px solid #e3eaf2',
+      animation: 'toastIn .3s',
+    }}>
+      {avatar ? (
+        <img src={avatar} alt="avatar" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', background: '#e3eaf2', border: '2px solid #e3eaf2' }} />
+      ) : (
+        <span style={{ width: 38, height: 38, borderRadius: '50%', background: '#e3eaf2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#3a8dde', fontWeight: 700 }}>👤</span>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 15, color: '#23263a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sender}</div>
+        <div style={{ fontSize: 14, color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{message}</div>
+      </div>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#3a8dde', fontSize: 22, cursor: 'pointer', marginLeft: 8, marginRight: -4, lineHeight: 1 }}>×</button>
+      <style>{`
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-16px);} to { opacity: 1; transform: none; } }
+      `}</style>
+    </div>
+  );
+}
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { getUsers, createChat, getChats, markChatAsRead } from "../api";
 import { useSocket } from "../SocketContext";
@@ -33,9 +71,68 @@ const USER_STATES = [
 //import { FaPlus } from "react-icons/fa";
 
 export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile }) {
+    // Toast de notificación
+    const [toast, setToast] = useState({ open: false, message: '', sender: '', avatar: '' });
+    const toastTimeout = useRef();
+    // Referencia para el audio de notificación
+    const notificationAudioRef = useRef(null);
+    // Estado para saber cuál chat está abierto actualmente en ChatApp
+    const [activeChatId, setActiveChatId] = useState(null);
+    // Cargar chats (debe ir antes de cualquier uso)
+    const [chats, setChats] = useState([]);
+    const [loadingChats, setLoadingChats] = useState(true);
+    const [apiError, setApiError] = useState("");
+    const loadChats = useCallback(() => {
+      if (!token) return;
+      setLoadingChats(true);
+      setApiError("");
+      getChats(token)
+        .then(data => setChats(data.chats || data))
+        .catch(e => setApiError(e.message))
+        .finally(() => setLoadingChats(false));
+    }, [token]);
+    // Escuchar evento personalizado para saber el chat abierto
+    useEffect(() => {
+      const handler = (e) => {
+        setActiveChatId(e.detail?.chatId || null);
+      };
+      window.addEventListener('magic2k_active_chat_changed', handler);
+      return () => window.removeEventListener('magic2k_active_chat_changed', handler);
+    }, []);
+    // Socket para escuchar mensajes nuevos y reproducir sonido si corresponde
+    const socket = useSocket();
+    useEffect(() => {
+      if (!socket) return;
+      const handleMessage = (msg) => {
+        loadChats();
+        // Sonido y Toast solo si el mensaje es de otro chat
+        const incomingChatId = msg.chatId || msg.roomId || msg.room || msg.chat || msg._id;
+        if (incomingChatId && activeChatId && String(incomingChatId) !== String(activeChatId)) {
+          // Buscar info del chat y usuario
+          let senderName = 'Nuevo mensaje';
+          let avatar = '';
+          if (msg.user && typeof msg.user === 'object') {
+            senderName = msg.user.firstName ? `${msg.user.firstName} ${msg.user.lastName || ''}` : (msg.user.email || 'Usuario');
+            avatar = msg.user.avatar ? getAvatarUrl(msg.user.avatar) : '';
+          }
+          let preview = '';
+          if (msg.type === 'IMAGE') preview = '🖼️ Imagen';
+          else if (msg.type === 'AUDIO') preview = '🔊 Audio';
+          else preview = msg.message || 'Nuevo mensaje';
+          setToast({ open: true, message: preview, sender: senderName, avatar });
+          if (notificationAudioRef.current) {
+            notificationAudioRef.current.currentTime = 0;
+            notificationAudioRef.current.play().catch(() => {});
+          }
+          clearTimeout(toastTimeout.current);
+          toastTimeout.current = setTimeout(() => setToast(t => ({ ...t, open: false })), 4000);
+        }
+      };
+      socket.on('message', handleMessage);
+      return () => socket.off('message', handleMessage);
+    }, [socket, activeChatId, loadChats, chats]);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
-  const [chats, setChats] = useState([]);
   const [results, setResults] = useState([]);
   const [chatError, setChatError] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
@@ -48,21 +145,10 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
       window.magic2k_onlineUsers = onlineUsers;
     }
   }, [onlineUsers]);
-  const [loadingChats, setLoadingChats] = useState(true);
-  const [apiError, setApiError] = useState("");
   // loading para búsqueda de usuarios
   const [loading, setLoading] = useState(false);
 
-  // Cargar chats
-  const loadChats = useCallback(() => {
-    if (!token) return;
-    setLoadingChats(true);
-    setApiError("");
-    getChats(token)
-      .then(data => setChats(data.chats || data))
-      .catch(e => setApiError(e.message))
-      .finally(() => setLoadingChats(false));
-  }, [token]);
+  // ...
 
   useEffect(() => {
     loadChats();

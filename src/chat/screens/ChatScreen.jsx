@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
-import ticSound from "../../assets/tic.mp3";
+import ticSound from "../../assets/magic2k_message_pip.wav";
 import { getChatMessages, sendMessage, sendImage, sendAudio, getStatusMsg, getAccessToken } from "../api";
 import { USER_STATES } from '@/config/userStates';
 import { logoutAndRedirect } from '@/utils/logout';
@@ -192,6 +192,10 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         tic: true,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]));
+      if (ticAudioRef.current) {
+        ticAudioRef.current.currentTime = 0;
+        ticAudioRef.current.play().catch(() => {});
+      }
     };
     const handleTyping = (userName) => {
       setTypingUser(userName);

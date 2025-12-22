@@ -19,6 +19,10 @@ export function SocketProvider({ user, token, children }) {
             socketRef.current.emit("identify", { userId: user._id, state });
             setSocketReady(true);
         });
+        socketRef.current.on('connect_error', (err) => {
+            console.error('[SocketContext] connect_error', err);
+            setSocketReady(false);
+        });
         
         // Escuchar lista inicial de usuarios online con sus estados
         socketRef.current.on("online_users", (users) => {
@@ -63,7 +67,15 @@ export function SocketProvider({ user, token, children }) {
         });
         
         return () => {
-            socketRef.current && socketRef.current.disconnect();
+            if (socketRef.current) {
+                socketRef.current.off('connect');
+                socketRef.current.off('online_users');
+                socketRef.current.off('user_online');
+                socketRef.current.off('user_state_changed');
+                socketRef.current.off('user_offline');
+                socketRef.current.off('connect_error');
+                socketRef.current.disconnect();
+            }
         };
     }, [user?._id, token]);
 

@@ -303,14 +303,14 @@ export default function ChatScreen({ chat, user, token, onBack }) {
 
   // Enviar TIC (zumbido, solo UI por ahora)
   const handleSendTic = () => {
-    setMessages(msgs => ([...msgs, { id: Date.now(), from: user?._id, tic: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]));
+    // Reproducir sonido y animación localmente, pero NO crear placeholder en historial.
     ticAudioRef.current?.play();
     const chatArea = document.getElementById('chat-area');
     if (chatArea) {
       chatArea.classList.add('tic-vibrate');
       setTimeout(() => chatArea.classList.remove('tic-vibrate'), 600);
     }
-    // Emitir TIC al backend para que lo reciba el receptor
+    // Emitir TIC al backend para que lo reciba el receptor (y persista)
     if (socket && chat?._id) {
       socket.emit("tic", { chatId: chat._id, userId: user?._id });
     }

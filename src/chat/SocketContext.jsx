@@ -13,6 +13,13 @@ export function SocketProvider({ user, token, children }) {
             socketRef.current.disconnect();
         }
         socketRef.current = getSocket(token);
+        // Exponer el socket en window para depuración manual desde la consola
+        try { window.magic2k_socket = socketRef.current; } catch(e) { /* noop */ }
+        // Listeners globales de debug (se limpian al desmontar)
+        const __debug_on_message = (m) => console.debug('[SocketContext][debug] message', m);
+        const __debug_on_tic = (d) => console.debug('[SocketContext][debug] tic', d);
+        const __debug_on_connect = () => console.debug('[SocketContext][debug] connect', socketRef.current && socketRef.current.id);
+        const __debug_on_connect_error = (err) => console.error('[SocketContext][debug] connect_error', err);
         socketRef.current.on("connect", () => {
             // Enviar userId y estado al identificarse
             const state = localStorage.getItem('magic2k_user_state') || 'online';
@@ -23,6 +30,10 @@ export function SocketProvider({ user, token, children }) {
             console.error('[SocketContext] connect_error', err);
             setSocketReady(false);
         });
+        socketRef.current.on('message', __debug_on_message);
+        socketRef.current.on('tic', __debug_on_tic);
+        socketRef.current.on('connect', __debug_on_connect);
+        socketRef.current.on('connect_error', __debug_on_connect_error);
         
         // Escuchar lista inicial de usuarios online con sus estados
         socketRef.current.on("online_users", (users) => {
@@ -74,6 +85,12 @@ export function SocketProvider({ user, token, children }) {
                 socketRef.current.off('user_state_changed');
                 socketRef.current.off('user_offline');
                 socketRef.current.off('connect_error');
+                // limpiar listeners de debug y referencia global
+                try { socketRef.current.off('message', __debug_on_message); } catch(e) {}
+                try { socketRef.current.off('tic', __debug_on_tic); } catch(e) {}
+                try { socketRef.current.off('connect', __debug_on_connect); } catch(e) {}
+                try { socketRef.current.off('connect_error', __debug_on_connect_error); } catch(e) {}
+                try { delete window.magic2k_socket; } catch(e) {}
                 socketRef.current.disconnect();
             }
         };

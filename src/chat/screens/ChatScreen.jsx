@@ -160,6 +160,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     setSocketError(false);
     socket.emit("join", chat._id);
     const handleMessage = msg => {
+      console.debug('[ChatScreen] handleMessage received:', msg);
       // El user puede venir como objeto poblado o como string ID
       let senderId;
       if (typeof msg.user === 'object' && msg.user !== null) {
@@ -184,21 +185,30 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         newMsg = { ...baseMsg, audio: audioUrl };
       } else if (type === 'TIC') {
         newMsg = { ...baseMsg, tic: true };
+        // Reproducir sonido y animación al recibir el tic persistido
+        if (ticAudioRef.current) {
+          ticAudioRef.current.currentTime = 0;
+          ticAudioRef.current.play().catch(() => {});
+        }
+        const chatArea = document.getElementById('chat-area');
+        if (chatArea) {
+          chatArea.classList.add('tic-flash');
+          setTimeout(() => chatArea.classList.remove('tic-flash'), 700);
+        }
       } else {
         newMsg = { ...baseMsg, text: msg.message };
       }
       setMessages(prev => prev.some(m => m.id === msg._id) ? prev : [...prev, newMsg]);
     };
     const handleTic = data => {
-      setMessages(msgs => ([...msgs, {
-        id: Date.now() + Math.random(),
-        from: data.userId,
-        tic: true,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]));
-      if (ticAudioRef.current) {
-        ticAudioRef.current.currentTime = 0;
-        ticAudioRef.current.play().catch(() => {});
+      console.debug('[ChatScreen] handleTic received:', data);
+      // No agregamos un placeholder en el historial aquí (evita duplicados).
+      // Solo mostramos retroalimentación visual temporal hasta que llegue
+      // el mensaje persistido vía 'message' con type === 'TIC'.
+      const chatArea = document.getElementById('chat-area');
+      if (chatArea) {
+        chatArea.classList.add('tic-vibrate');
+        setTimeout(() => chatArea.classList.remove('tic-vibrate'), 600);
       }
     };
     const handleTyping = (userName) => {

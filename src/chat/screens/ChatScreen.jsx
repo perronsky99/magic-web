@@ -118,7 +118,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     if (!chat?._id) return;
     setLoading(true);
     setLoadError("");
-    getChatMessages(chat._id)
+        getChatMessages(chat._id)
       .then(data => {
         // Si la respuesta es {messages: [], total: 0}, no es error
         let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
@@ -140,6 +140,8 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           } else if (type === 'AUDIO') {
             const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
             return { ...baseMsg, audio: audioUrl };
+          } else if (type === 'TIC') {
+            return { ...baseMsg, tic: true };
           } else {
             return { ...baseMsg, text: msg.message };
           }
@@ -180,6 +182,8 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       } else if (type === 'AUDIO') {
         const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
         newMsg = { ...baseMsg, audio: audioUrl };
+      } else if (type === 'TIC') {
+        newMsg = { ...baseMsg, tic: true };
       } else {
         newMsg = { ...baseMsg, text: msg.message };
       }
@@ -223,7 +227,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
         getChatMessages(chat._id)
           .then(data => {
             let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
-            setMessages(msgs.map(msg => {
+                    setMessages(msgs.map(msg => {
               const senderId = msg.user?._id || msg.user?.id || msg.user;
               const type = msg.type || 'TEXT';
               const baseMsg = {
@@ -231,12 +235,14 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                 from: senderId,
                 time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
               };
-              if (type === 'IMAGE') {
+                      if (type === 'IMAGE') {
                 const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
                 return { ...baseMsg, image: imgUrl };
-              } else if (type === 'AUDIO') {
+                      } else if (type === 'AUDIO') {
                 const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
                 return { ...baseMsg, audio: audioUrl };
+                      } else if (type === 'TIC') {
+                        return { ...baseMsg, tic: true };
               } else {
                 return { ...baseMsg, text: msg.message };
               }

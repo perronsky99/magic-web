@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { FaComments, FaUserFriends, FaUserCircle, FaVolumeUp, FaVolumeMute, FaSignOutAlt, FaBars, FaTimes, FaPen, FaCheck } from 'react-icons/fa';
+import { FaCommentDots, FaUsers, FaCog, FaSignOutAlt, FaPen, FaCheck, FaBell, FaBellSlash, FaChevronRight } from 'react-icons/fa';
 import { API_URL, updateStatusMsg } from '../api';
 import defaultAvatar from '../../assets/user.png';
-import logo from '../../assets/image.png';
 import './MobileHomeView.css';
 
+// Estados simplificados y modernos
 const USER_STATES = [
-  { key: 'online', label: 'ONLINE', color: '#3ac47d', activeColor: '#3ac47d' },
-  { key: 'away', label: 'AWAY', color: '#f5a623', activeColor: '#f5a623' },
-  { key: 'invisible', label: 'INVISIBLE', color: '#b0b8c9', activeColor: '#b0b8c9' },
-  { key: 'busy', label: 'BUSY', color: '#e74c3c', activeColor: '#e74c3c' },
-  { key: 'offline', label: 'OFF', color: '#8696a6', activeColor: '#8696a6' },
+  { key: 'online', label: 'Disponible', color: '#10b981', emoji: '🟢' },
+  { key: 'away', label: 'Ausente', color: '#f59e0b', emoji: '🌙' },
+  { key: 'busy', label: 'Ocupado', color: '#ef4444', emoji: '⛔' },
+  { key: 'invisible', label: 'Invisible', color: '#6b7280', emoji: '👻' },
 ];
 
 function getAvatarUrl(avatar) {
@@ -30,9 +29,9 @@ export default function MobileHomeView({
   onlineCount = 0 
 }) {
   const [soundOn, setSoundOn] = useState(() => localStorage.getItem('magic2k_sound') !== 'off');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [showStateSelector, setShowStateSelector] = useState(false);
   
-  // Status message (alias) editable
+  // Status message editable
   const [statusMsg, setStatusMsg] = useState(() => 
     localStorage.getItem('magic2k_user_status_msg') || user?.nickname || ''
   );
@@ -44,7 +43,6 @@ export default function MobileHomeView({
     localStorage.setItem('magic2k_sound', soundOn ? 'on' : 'off');
   }, [soundOn]);
 
-  // Focus en el input cuando se activa edición
   useEffect(() => {
     if (isEditingStatus && statusInputRef.current) {
       statusInputRef.current.focus();
@@ -52,7 +50,6 @@ export default function MobileHomeView({
     }
   }, [isEditingStatus]);
 
-  // Guardar status/alias
   const handleSaveStatus = useCallback(async () => {
     if (statusSaving) return;
     setStatusSaving(true);
@@ -67,7 +64,6 @@ export default function MobileHomeView({
     }
   }, [statusMsg, statusSaving]);
 
-  // Obtener nombre a mostrar: nombre completo > nickname > email
   const displayName = user?.firstName 
     ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
     : user?.nickname || user?.email || 'Usuario';
@@ -75,53 +71,39 @@ export default function MobileHomeView({
   const currentState = USER_STATES.find(s => s.key === userState) || USER_STATES[0];
 
   return (
-    <div className="mobile-home-container">
-      {/* Menú desplegable (se activa desde el footer) */}
-      {menuOpen && (
-        <div className="mobile-dropdown-menu">
-          <button onClick={() => { onNavigate('profile'); setMenuOpen(false); }}>
-            <FaUserCircle /> Mi perfil
-          </button>
-          <button onClick={() => { setSoundOn(!soundOn); }}>
-            {soundOn ? <FaVolumeUp /> : <FaVolumeMute />} Sonido: {soundOn ? 'ON' : 'OFF'}
-          </button>
-          <button onClick={onLogout} className="logout-btn">
-            <FaSignOutAlt /> Cerrar sesión
-          </button>
-        </div>
-      )}
-
-      {/* Perfil del usuario */}
-      <div className="mobile-profile-section">
-        <div className="mobile-avatar-container" onClick={() => onNavigate('profile')}>
-          {user?.avatar ? (
+    <div className="m2k-home">
+      {/* Hero Section con perfil */}
+      <div className="m2k-hero">
+        <div className="m2k-hero-bg" />
+        
+        <div className="m2k-profile-card">
+          <div className="m2k-avatar-wrap" onClick={() => onNavigate('profile')}>
             <img 
-              src={getAvatarUrl(user.avatar)} 
+              src={user?.avatar ? getAvatarUrl(user.avatar) : defaultAvatar}
               alt="avatar" 
-              className="mobile-avatar"
+              className="m2k-avatar"
               onError={e => { e.target.onerror = null; e.target.src = defaultAvatar; }}
             />
-          ) : (
-            <div className="mobile-avatar-placeholder">
-              <FaUserCircle />
-            </div>
-          )}
-        </div>
-        <div className="mobile-profile-info">
-          <span className="mobile-welcome">Welcome,</span>
-          <span className="mobile-username">{displayName}</span>
+            <span 
+              className="m2k-status-dot"
+              style={{ background: currentState.color }}
+              onClick={(e) => { e.stopPropagation(); setShowStateSelector(!showStateSelector); }}
+            />
+          </div>
           
-          {/* Alias/Status editable */}
-          <div className="mobile-status-row">
+          <div className="m2k-user-info">
+            <h1 className="m2k-username">{displayName}</h1>
+            
+            {/* Status editable */}
             {isEditingStatus ? (
-              <div className="mobile-status-edit">
+              <div className="m2k-status-edit">
                 <input
                   ref={statusInputRef}
                   type="text"
-                  className="mobile-status-input"
+                  className="m2k-status-input"
                   value={statusMsg}
                   onChange={e => setStatusMsg(e.target.value.slice(0, 60))}
-                  placeholder="Escribe tu alias o estado..."
+                  placeholder="¿Qué estás pensando?"
                   maxLength={60}
                   onKeyDown={e => {
                     if (e.key === 'Enter') handleSaveStatus();
@@ -130,123 +112,95 @@ export default function MobileHomeView({
                   onBlur={handleSaveStatus}
                   disabled={statusSaving}
                 />
-                <button 
-                  className="mobile-status-save" 
-                  onClick={handleSaveStatus}
-                  disabled={statusSaving}
-                >
+                <button className="m2k-status-save" onClick={handleSaveStatus} disabled={statusSaving}>
                   <FaCheck />
                 </button>
               </div>
             ) : (
-              <div 
-                className="mobile-status-display"
-                onClick={() => setIsEditingStatus(true)}
-              >
-                <span className="mobile-status-text">
-                  {statusMsg || 'Escribe tu alias o estado ✨'}
-                </span>
-                <FaPen className="mobile-status-edit-icon" />
-              </div>
+              <p className="m2k-status" onClick={() => setIsEditingStatus(true)}>
+                {statusMsg || '¿Qué estás pensando?'}
+                <FaPen className="m2k-edit-hint" />
+              </p>
             )}
           </div>
+
+          {/* Selector de estado - modal pequeño */}
+          {showStateSelector && (
+            <div className="m2k-state-selector">
+              {USER_STATES.map(state => (
+                <button
+                  key={state.key}
+                  className={`m2k-state-option ${userState === state.key ? 'active' : ''}`}
+                  onClick={() => { setUserState(state.key); setShowStateSelector(false); }}
+                >
+                  <span className="m2k-state-emoji">{state.emoji}</span>
+                  <span className="m2k-state-label">{state.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Estados del usuario (estilo MSN) */}
-      <div className="mobile-states-row">
-        {USER_STATES.map((state) => (
-          <button
-            key={state.key}
-            className={`mobile-state-btn ${userState === state.key ? 'active' : ''}`}
-            onClick={() => setUserState(state.key)}
-            style={{
-              '--state-color': state.color,
-              '--state-active-color': state.activeColor,
-            }}
-          >
-            <span 
-              className="mobile-state-indicator"
-              style={{ 
-                background: state.color,
-                borderColor: userState === state.key ? state.activeColor : 'transparent'
-              }}
-            />
-            <span className="mobile-state-label">{state.label}</span>
-          </button>
-        ))}
+      {/* Stats rápidos */}
+      <div className="m2k-stats">
+        <div className="m2k-stat">
+          <span className="m2k-stat-value">{onlineCount}</span>
+          <span className="m2k-stat-label">en línea</span>
+        </div>
+        <div className="m2k-stat-divider" />
+        <div className="m2k-stat clickable" onClick={() => setShowStateSelector(!showStateSelector)}>
+          <span className="m2k-stat-emoji">{currentState.emoji}</span>
+          <span className="m2k-stat-label">{currentState.label}</span>
+        </div>
       </div>
 
-      {/* Opciones principales */}
-      <div className="mobile-options-list">
-        {/* Soporte online (opcional) */}
-        <button className="mobile-option-item support-item">
-          <div className="mobile-option-icon support-icon">
-            <span className="support-bot">🤖</span>
+      {/* Acciones principales */}
+      <div className="m2k-actions">
+        <button className="m2k-action-card primary" onClick={() => onNavigate('chats')}>
+          <div className="m2k-action-icon">
+            <FaCommentDots />
           </div>
-          <div className="mobile-option-text">
-            <span className="mobile-option-title">WE ARE ONLINE NOW :)</span>
-            <span className="mobile-option-subtitle">Click here for live support</span>
+          <div className="m2k-action-content">
+            <span className="m2k-action-title">Mensajes</span>
+            <span className="m2k-action-desc">Chatea con tus contactos</span>
           </div>
+          <FaChevronRight className="m2k-action-arrow" />
         </button>
 
-        {/* Chat */}
-        <button 
-          className="mobile-option-item"
-          onClick={() => onNavigate('chats')}
-        >
-          <div className="mobile-option-icon">
-            <FaComments />
+        <button className="m2k-action-card" onClick={() => onNavigate('groups')}>
+          <div className="m2k-action-icon">
+            <FaUsers />
           </div>
-          <div className="mobile-option-text">
-            <span className="mobile-option-title">CHAT!</span>
-            <span className="mobile-option-subtitle">
-              <span className="user-icon">👤</span> {onlineCount} Online Now
-            </span>
+          <div className="m2k-action-content">
+            <span className="m2k-action-title">Grupos</span>
+            <span className="m2k-action-desc">Conversaciones grupales</span>
           </div>
+          <FaChevronRight className="m2k-action-arrow" />
         </button>
+      </div>
 
-        {/* Grupos */}
+      {/* Configuración rápida */}
+      <div className="m2k-quick-settings">
         <button 
-          className="mobile-option-item"
-          onClick={() => onNavigate('groups')}
-        >
-          <div className="mobile-option-icon">
-            <FaUserFriends />
-          </div>
-          <div className="mobile-option-text">
-            <span className="mobile-option-title">GROUPS</span>
-            <span className="mobile-option-subtitle">Join group conversations</span>
-          </div>
-        </button>
-
-        {/* Sonido */}
-        <button 
-          className="mobile-option-item"
+          className={`m2k-setting-pill ${soundOn ? 'active' : ''}`}
           onClick={() => setSoundOn(!soundOn)}
         >
-          <div className="mobile-option-icon">
-            {soundOn ? <FaVolumeUp /> : <FaVolumeMute />}
-          </div>
-          <div className="mobile-option-text">
-            <span className="mobile-option-title">SOUND: {soundOn ? 'ON' : 'OFF'}</span>
-            <span className="mobile-option-subtitle">Toggle notification sounds</span>
-          </div>
+          {soundOn ? <FaBell /> : <FaBellSlash />}
+          <span>Sonidos {soundOn ? 'ON' : 'OFF'}</span>
+        </button>
+        
+        <button className="m2k-setting-pill" onClick={() => onNavigate('profile')}>
+          <FaCog />
+          <span>Perfil</span>
         </button>
       </div>
 
-      {/* Footer flotante (soporte) */}
-      <div className="mobile-footer-bar">
-        <div className="mobile-footer-content">
-          <span className="footer-bot">🤖</span>
-          <div className="footer-text">
-            <span className="footer-title">WE ARE ONLINE NOW :)</span>
-            <span className="footer-subtitle">Click here for live support</span>
-          </div>
-        </div>
-        <button className="footer-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
-          <FaBars />
-          <span>MENU</span>
+      {/* Footer minimalista */}
+      <div className="m2k-footer">
+        <button className="m2k-logout" onClick={onLogout}>
+          <FaSignOutAlt />
+          <span>Cerrar sesión</span>
         </button>
       </div>
     </div>

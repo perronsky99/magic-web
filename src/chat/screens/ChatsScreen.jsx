@@ -41,7 +41,7 @@ import { getUsers, createChat, getChats, markChatAsRead } from "../api";
 import { useSocket } from "../SocketContext";
 import { API_URL } from '../api';
 import defaultAvatar from '../../assets/user.png';
-import { FaPlus, FaCircle } from "react-icons/fa";
+import { FaCommentDots, FaUsers, FaChevronRight, FaCircle } from "react-icons/fa";
 
 // Utilidad debounce real con useRef
 function useDebouncedCallback(callback, delay) {
@@ -71,6 +71,10 @@ const USER_STATES = [
 //import { FaPlus } from "react-icons/fa";
 
 export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile, hideHeader = false }) {
+  // Gradiente decorativo para fondo
+  const HeroBg = () => (
+    <div className="m2k-hero-bg" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+  );
     // Toast de notificación
     const [toast, setToast] = useState({ open: false, message: '', sender: '', avatar: '' });
     const toastTimeout = useRef();
@@ -322,47 +326,35 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   ), [chats, user, onSelectChat, onlineUsers]);
 
   return (
-    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', background: '#fafdff' }}>
+    <div className="m2k-home" style={{ position: 'relative', minHeight: '100vh', width: '100vw', maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box', background: '#0f172a', display: 'flex', flexDirection: 'column' }}>
+      <HeroBg />
+      {/* Header moderno */}
       {!hideHeader && (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px 10px 18px', borderBottom: '1.5px solid #e3eaf2', background: '#fafdff', zIndex: 2 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <h2 style={{ fontWeight: 800, fontSize: 22, color: '#7a8ca3', margin: 0 }}>Chats</h2>
-          <span style={{ fontSize: 15, color: '#3a8dde', fontWeight: 700, background: '#e3eaf2', borderRadius: 8, padding: '4px 12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email || 'Usuario'}
-              {/* Estado visual */}
-              {(() => {
-                const state = localStorage.getItem('magic2k_user_state') || 'online';
-                const s = USER_STATES.find(x => x.key === state);
-                return s ? (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 600, fontSize: 13, color: s.color }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, display: 'inline-block', boxShadow: `0 0 4px ${s.color}88` }} />
-                    {s.label}
-                  </span>
-                ) : null;
-              })()}
+        <div className="m2k-hero" style={{ position: 'relative', padding: '32px 24px 18px', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            <button onClick={() => window.history.back()} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 12, padding: '8px 12px', color: '#fff', fontWeight: 700, fontSize: 18, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', marginRight: 8 }}>&larr;</button>
+            <h2 style={{ fontWeight: 800, fontSize: 24, color: '#fff', margin: 0, letterSpacing: '-0.5px' }}>Tus chats</h2>
+            <span style={{ fontSize: 15, color: '#3b82f6', fontWeight: 700, background: 'rgba(59,130,246,0.08)', borderRadius: 8, padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FaCommentDots style={{ fontSize: 18, color: '#3b82f6' }} />
+              {chats.length}
             </span>
-            {/* Nickname/mensaje de estado */}
-            {(() => {
-              const msg = localStorage.getItem('magic2k_user_status_msg') || '';
-              return msg ? (
-                <span style={{ fontSize: 13, color: '#7a8ca3', fontWeight: 500, marginTop: 1, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg}</span>
-              ) : null;
-            })()}
-          </span>
+            <span style={{ fontSize: 15, color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,0.08)', borderRadius: 8, padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FaUsers style={{ fontSize: 18, color: '#10b981' }} />
+              {Array.isArray(onlineUsers) ? onlineUsers.length : 0} online
+            </span>
+          </div>
         </div>
-        <button onClick={() => setShowModal(true)} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 12, padding: '8px 18px', fontWeight: 700, fontSize: 15, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', transition: 'background .2s' }}>+ Nuevo chat</button>
-      </div>
       )}
-      <div style={{ flex: 1, overflowY: 'auto', padding: hideHeader ? '12px' : '0 0 24px 0', margin: 0, display: 'flex', flexDirection: 'column', background: '#fafdff', zIndex: 1 }}>
+      {/* Lista de chats */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: hideHeader ? '12px' : '0 0 24px 0', margin: 0, display: 'flex', flexDirection: 'column', background: 'transparent', zIndex: 1 }}>
         {loadingChats ? (
           <div style={{ width: '100%', maxWidth: 480, margin: '48px auto 0 auto' }}>
             {[1, 2, 3].map(i => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18, padding: '14px 18px', borderRadius: 12, background: '#f3f7fb', boxShadow: '0 1px 8px #3a8dde08', border: '1.5px solid #e3eaf2', width: '100%', minHeight: 56 }}>
-                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(90deg,#e3eaf2 25%,#fafdff 50%,#e3eaf2 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18, padding: '14px 18px', borderRadius: 18, background: 'rgba(255,255,255,0.04)', boxShadow: '0 1px 8px #3a8dde08', border: '1.5px solid rgba(255,255,255,0.08)', width: '100%', minHeight: 56 }}>
+                <div style={{ width: 38, height: 38, borderRadius: '24px', background: 'linear-gradient(90deg,#334155 25%,#0f172a 50%,#334155 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ width: '60%', height: 16, borderRadius: 8, background: 'linear-gradient(90deg,#e3eaf2 25%,#fafdff 50%,#e3eaf2 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
-                  <div style={{ width: '40%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,#e3eaf2 25%,#fafdff 50%,#e3eaf2 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
+                  <div style={{ width: '60%', height: 16, borderRadius: 8, background: 'linear-gradient(90deg,#334155 25%,#0f172a 50%,#334155 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
+                  <div style={{ width: '40%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg,#334155 25%,#0f172a 50%,#334155 75%)', animation: 'skeletonShimmer 1.2s infinite linear', backgroundSize: '200% 100%' }} />
                 </div>
               </div>
             ))}
@@ -374,45 +366,42 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
             `}</style>
           </div>
         ) : apiError ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafdff' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: 'transparent' }}>
             <div style={{ color: '#e74c3c', fontWeight: 600, padding: '24px 0', textAlign: 'center', fontSize: 18, marginBottom: 18 }}>{apiError}</div>
-            <button onClick={loadChats} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', marginTop: 10 }}>Reintentar</button>
+            <button onClick={loadChats} style={{ background: 'linear-gradient(90deg,#3b82f6 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 16, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', marginTop: 10 }}>Reintentar</button>
           </div>
         ) : chats.length === 0 ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafdff' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: 'transparent' }}>
             <div style={{ textAlign: 'center', marginTop: 32 }}>
-              <div style={{ fontSize: 32, fontWeight: 800, color: '#3a8dde', marginBottom: 16 }}>M2k</div>
-              <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 12 }}>¡Bienvenido a <span style={{ color: '#3a8dde' }}>Magic2k</span>!</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: '#3b82f6', marginBottom: 16 }}>M2k</div>
+              <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 12 }}>¡Bienvenido a <span style={{ color: '#3b82f6' }}>Magic2k</span>!</div>
               <div style={{ fontSize: 17, color: '#7a8ca3', marginBottom: 10 }}>Selecciona un chat o grupo para comenzar a conversar.<br />Disfruta una experiencia nostálgica, moderna y única.</div>
-              <div style={{ fontWeight: 700, color: '#3a8dde', fontSize: 15, marginTop: 8 }}>Simple. Privado. Mágico.</div>
+              <div style={{ fontWeight: 700, color: '#3b82f6', fontSize: 15, marginTop: 8 }}>Simple. Privado. Mágico.</div>
             </div>
             {chatError && (
               <div style={{ color: '#e74c3c', fontWeight: 600, padding: '16px 0', textAlign: 'center', fontSize: 16 }}>{chatError}</div>
             )}
           </div>
         ) : (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '32px 0 0 0', background: '#fafdff' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#3a8dde', marginBottom: 18 }}>Tus chats</div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '32px 0 0 0', background: 'transparent' }}>
             <div style={{ width: '100%', maxWidth: 480 }}>
               {chatList}
             </div>
           </div>
         )}
       </div>
-      {/* Botón 'Mi perfil' eliminado por solicitud del usuario */}
-
       {/* Modal para crear chat */}
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 2000, background: 'rgba(20,22,34,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 8px 32px #3a8dde22', padding: '32px 24px', minWidth: 320, maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 26, color: '#3a8dde', cursor: 'pointer' }}>×</button>
-            <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 18, color: '#3a8dde' }}>Nuevo chat</h3>
+          <div style={{ background: '#1e293b', borderRadius: 18, boxShadow: '0 8px 32px #3a8dde22', padding: '32px 24px', minWidth: 320, maxWidth: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 26, color: '#3b82f6', cursor: 'pointer' }}>×</button>
+            <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 18, color: '#3b82f6' }}>Nuevo chat</h3>
             <input
               type="text"
               value={search}
               onChange={handleSearch}
               placeholder="Buscar usuario por nombre o email..."
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e3eaf2', fontSize: 15, marginBottom: 14, outline: 'none' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #334155', fontSize: 15, marginBottom: 14, outline: 'none', background: '#0f172a', color: '#fff' }}
               autoFocus
               aria-label="Buscar usuario por nombre o email"
               role="searchbox"
@@ -425,13 +414,13 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
                 <button
                   key={u._id}
                   onClick={() => handleCreateChat(u)}
-                  style={{ width: '100%', background: '#fafdff', border: '1.5px solid #e3eaf2', borderRadius: 10, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background .2s', fontWeight: 600, color: '#23263a', opacity: loading ? 0.6 : 1 }}
+                  style={{ width: '100%', background: '#0f172a', border: '1.5px solid #334155', borderRadius: 10, padding: '10px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background .2s', fontWeight: 600, color: '#fff', opacity: loading ? 0.6 : 1 }}
                   disabled={loading}
                   aria-disabled={loading}
                   aria-label={`Iniciar chat con ${u.firstName ? u.firstName + ' ' + (u.lastName || '') : u.email}`}
                   role="button"
                 >
-                  <span style={{ background: '#e3eaf2', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: '#3a8dde', fontWeight: 700 }}>
+                  <span style={{ background: '#334155', borderRadius: '24px', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: '#3b82f6', fontWeight: 700 }}>
                     {(u.firstName && u.firstName[0]) || (u.email && u.email[0]) || '?'}
                   </span>
                   <span style={{ flex: 1, textAlign: 'left' }}>

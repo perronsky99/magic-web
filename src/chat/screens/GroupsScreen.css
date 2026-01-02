@@ -417,3 +417,50 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+  .groups-screen {
+    height: 100vh;
+    background: linear-gradient(180deg, #f8fafc 0%, #e8ecf1 100%);
+    padding: 0;
+    margin: 0;
+  }
+
+  .groups-header {
+    padding: 12px 14px;
+    border-radius: 0;
+  }
+
+  .groups-list {
+    padding: 8px;
+  }
+
+  .group-item {
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+
+  .group-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .group-name {
+    font-size: 14px;
+  }
+
+  .group-last-message {
+    font-size: 12px;
+  }
+
+  .group-meta {
+    gap: 4px;
+  }
+
+  .create-group-modal {
+    width: 95%;
+    max-width: 420px;
+  }
+}

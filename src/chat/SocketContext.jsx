@@ -1,10 +1,30 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { getSocket } from "./socket";
 
+// Contexto separado para el socket (referencia estable)
 const SocketContext = createContext(null);
+
+// Contexto separado para usuarios online (evita re-renders del socket context)
+const OnlineUsersContext = createContext([]);
+
+// Hook personalizado para obtener usuarios online con selector opcional
+export function useOnlineUsers(selector) {
+    const users = useContext(OnlineUsersContext);
+    return selector ? selector(users) : users;
+}
+
+// Hook para verificar si un usuario específico está online
+export function useIsUserOnline(userId) {
+    return useOnlineUsers(users => {
+        if (!userId) return { online: false, state: 'offline' };
+        const user = users.find(u => String(u.id) === String(userId));
+        return user ? { online: true, state: user.state } : { online: false, state: 'offline' };
+    });
+}
 
 export function SocketProvider({ user, token, children }) {
     const [socketReady, setSocketReady] = useState(false);
+    const [onlineUsers, setOnlineUsers] = useState([]);
     const socketRef = useRef(null);
 
     useEffect(() => {
@@ -37,44 +57,51 @@ export function SocketProvider({ user, token, children }) {
         
         // Escuchar lista inicial de usuarios online con sus estados
         socketRef.current.on("online_users", (users) => {
-            //console.log("[SocketContext] online_users recibido:", users);
+            setOnlineUsers(users);
             window.magic2k_onlineUsers = users;
-            // Disparar evento custom para que los componentes se actualicen
             window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: users }));
         });
         
         // Escuchar cuando un usuario se conecta
         socketRef.current.on("user_online", ({ userId, state }) => {
-            //console.log("[SocketContext] user_online:", userId, state);
-            const currentUsers = window.magic2k_onlineUsers || [];
-            const existingIndex = currentUsers.findIndex(u => String(u.id) === String(userId));
-            if (existingIndex >= 0) {
-                currentUsers[existingIndex].state = state;
-            } else {
-                currentUsers.push({ id: String(userId), state });
-            }
-            window.magic2k_onlineUsers = [...currentUsers];
-            window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: window.magic2k_onlineUsers }));
+            setOnlineUsers(prev => {
+                const existingIndex = prev.findIndex(u => String(u.id) === String(userId));
+                let newUsers;
+                if (existingIndex >= 0) {
+                    newUsers = [...prev];
+                    newUsers[existingIndex] = { ...newUsers[existingIndex], state };
+                } else {
+                    newUsers = [...prev, { id: String(userId), state }];
+                }
+                window.magic2k_onlineUsers = newUsers;
+                window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: newUsers }));
+                return newUsers;
+            });
         });
         
         // Escuchar cuando un usuario cambia su estado
         socketRef.current.on("user_state_changed", ({ userId, state }) => {
-            //console.log("[SocketContext] user_state_changed:", userId, state);
-            const currentUsers = window.magic2k_onlineUsers || [];
-            const existingIndex = currentUsers.findIndex(u => String(u.id) === String(userId));
-            if (existingIndex >= 0) {
-                currentUsers[existingIndex].state = state;
-                window.magic2k_onlineUsers = [...currentUsers];
-                window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: window.magic2k_onlineUsers }));
-            }
+            setOnlineUsers(prev => {
+                const existingIndex = prev.findIndex(u => String(u.id) === String(userId));
+                if (existingIndex >= 0) {
+                    const newUsers = [...prev];
+                    newUsers[existingIndex] = { ...newUsers[existingIndex], state };
+                    window.magic2k_onlineUsers = newUsers;
+                    window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: newUsers }));
+                    return newUsers;
+                }
+                return prev;
+            });
         });
         
         // Escuchar cuando un usuario se desconecta
         socketRef.current.on("user_offline", (userId) => {
-            // console.log("[SocketContext] user_offline:", userId);
-            const currentUsers = window.magic2k_onlineUsers || [];
-            window.magic2k_onlineUsers = currentUsers.filter(u => String(u.id) !== String(userId));
-            window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: window.magic2k_onlineUsers }));
+            setOnlineUsers(prev => {
+                const newUsers = prev.filter(u => String(u.id) !== String(userId));
+                window.magic2k_onlineUsers = newUsers;
+                window.dispatchEvent(new CustomEvent('magic2k_users_updated', { detail: newUsers }));
+                return newUsers;
+            });
         });
         
         return () => {
@@ -96,9 +123,14 @@ export function SocketProvider({ user, token, children }) {
         };
     }, [user?._id, token]);
 
+    // Memoizar el valor del socket para evitar re-renders innecesarios
+    const socketValue = useMemo(() => socketRef.current, [socketReady]);
+
     return (
-        <SocketContext.Provider value={socketRef.current}>
-            {children}
+        <SocketContext.Provider value={socketValue}>
+            <OnlineUsersContext.Provider value={onlineUsers}>
+                {children}
+            </OnlineUsersContext.Provider>
         </SocketContext.Provider>
     );
 }
@@ -106,3 +138,6 @@ export function SocketProvider({ user, token, children }) {
 export function useSocket() {
     return useContext(SocketContext);
 }
+
+// Re-exportar para compatibilidad hacia atrás
+export { OnlineUsersContext };

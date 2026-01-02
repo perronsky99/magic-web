@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback, useMemo, memo } from "react";
 import ChatMessageInput from "../components/ChatMessageInput";
 import ticSound from "../../assets/magic2k_message_pip.wav";
 import { getChatMessages, sendMessage, sendImage, sendAudio, getStatusMsg, getAccessToken } from "../api";
@@ -9,10 +9,23 @@ import { TransitionGroup, CSSTransition } from "react-transition-group";
 import defaultAvatar from '../../assets/user.png';
 import { API_URL } from '../api';
 import { FaImage } from 'react-icons/fa';
+import { 
+  normalizeMessage, 
+  normalizeMessages, 
+  extractMessagesFromResponse, 
+  messageExists, 
+  addMessageIfNotExists,
+  normalizeId,
+  getUserIdFromToken 
+} from '../utils/messageUtils';
 
 // Componente para mostrar imágenes con loading y manejo de errores
-function ChatImage({ src, alt = "imagen", isMine }) {
+const ChatImage = memo(function ChatImage({ src, alt = "imagen", isMine }) {
   const [status, setStatus] = useState('loading'); // 'loading' | 'loaded' | 'error'
+  
+  const handleLoad = useCallback(() => setStatus('loaded'), []);
+  const handleError = useCallback(() => setStatus('error'), []);
+  const handleClick = useCallback(() => window.open(src, '_blank'), [src]);
   
   return (
     <div style={{ 
@@ -63,8 +76,10 @@ function ChatImage({ src, alt = "imagen", isMine }) {
       <img 
         src={src} 
         alt={alt}
-        onLoad={() => setStatus('loaded')}
-        onError={() => setStatus('error')}
+        loading="lazy"
+        decoding="async"
+        onLoad={handleLoad}
+        onError={handleError}
         style={{ 
           maxWidth: 220, 
           maxHeight: 200, 
@@ -73,24 +88,16 @@ function ChatImage({ src, alt = "imagen", isMine }) {
           display: status === 'loaded' ? 'block' : 'none',
           cursor: 'pointer'
         }}
-        onClick={() => window.open(src, '_blank')}
+        onClick={handleClick}
       />
     </div>
   );
-}
+});
 
-// Función para decodificar JWT y obtener el user_id
-function getUserIdFromToken() {
-  try {
-    const token = getAccessToken();
-    if (!token) return null;
-    const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload));
-    return decoded.user_id || decoded.id || decoded._id || decoded.sub;
-  } catch (e) {
-    console.error('Error decodificando token:', e);
-    return null;
-  }
+// Función helper para obtener el userId del token (usa la utilidad importada)
+function getMyUserId() {
+  const token = getAccessToken();
+  return getUserIdFromToken(token);
 }
 
 function getAvatarUrl(avatar) {
@@ -113,39 +120,16 @@ export default function ChatScreen({ chat, user, token, onBack }) {
   const socket = useSocket();
   const messageRefs = useRef({}); // refs persistentes por id
 
-  // Cargar historial real al montar
+  // Cargar historial real al montar (usando utilidades optimizadas)
   useEffect(() => {
     if (!chat?._id) return;
     setLoading(true);
     setLoadError("");
-        getChatMessages(chat._id)
+    
+    getChatMessages(chat._id)
       .then(data => {
-        // Si la respuesta es {messages: [], total: 0}, no es error
-        let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
-        
-        setMessages(msgs.map(msg => {
-          // Obtener el ID del usuario que envió el mensaje
-          const senderId = msg.user?._id || msg.user?.id || msg.user;
-          
-          // Determinar el tipo y contenido del mensaje
-          const type = msg.type || 'TEXT';
-          const baseMsg = {
-            id: msg._id,
-            from: senderId,
-            time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-          };
-          if (type === 'IMAGE') {
-            const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
-            return { ...baseMsg, image: imgUrl };
-          } else if (type === 'AUDIO') {
-            const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
-            return { ...baseMsg, audio: audioUrl };
-          } else if (type === 'TIC') {
-            return { ...baseMsg, tic: true };
-          } else {
-            return { ...baseMsg, text: msg.message };
-          }
-        }));
+        const msgs = extractMessagesFromResponse(data);
+        setMessages(normalizeMessages(msgs));
       })
       .catch((err) => {
         setMessages([]);
@@ -154,38 +138,18 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       .finally(() => setLoading(false));
   }, [chat?._id]);
 
-  // Sockets: unirse a la sala y recibir mensajes en tiempo real
+  // Sockets: unirse a la sala y recibir mensajes en tiempo real (optimizado)
   useEffect(() => {
     if (!chat?._id || !socket) return;
     setSocketError(false);
     socket.emit("join", chat._id);
-    const handleMessage = msg => {
+    
+    const handleMessage = (msg) => {
       console.debug('[ChatScreen] handleMessage received:', msg);
-      // El user puede venir como objeto poblado o como string ID
-      let senderId;
-      if (typeof msg.user === 'object' && msg.user !== null) {
-        senderId = msg.user._id || msg.user.id;
-      } else {
-        senderId = msg.user; // Es un string ID directamente
-      }
+      const newMsg = normalizeMessage(msg);
       
-      // Determinar el tipo y contenido del mensaje
-      const type = msg.type || 'TEXT';
-      const baseMsg = {
-        id: msg._id,
-        from: senderId,
-        time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-      };
-      let newMsg;
-      if (type === 'IMAGE') {
-        const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
-        newMsg = { ...baseMsg, image: imgUrl };
-      } else if (type === 'AUDIO') {
-        const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
-        newMsg = { ...baseMsg, audio: audioUrl };
-      } else if (type === 'TIC') {
-        newMsg = { ...baseMsg, tic: true };
-        // Reproducir sonido y animación al recibir el tic persistido
+      // Efecto especial para TIC
+      if (newMsg?.tic) {
         if (ticAudioRef.current) {
           ticAudioRef.current.currentTime = 0;
           ticAudioRef.current.play().catch(() => {});
@@ -195,22 +159,22 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           chatArea.classList.add('tic-flash');
           setTimeout(() => chatArea.classList.remove('tic-flash'), 700);
         }
-      } else {
-        newMsg = { ...baseMsg, text: msg.message };
       }
-      setMessages(prev => prev.some(m => m.id === msg._id) ? prev : [...prev, newMsg]);
+      
+      // Agregar mensaje solo si no existe
+      setMessages(prev => addMessageIfNotExists(prev, newMsg));
     };
-    const handleTic = data => {
+    
+    const handleTic = (data) => {
       console.debug('[ChatScreen] handleTic received:', data);
-      // No agregamos un placeholder en el historial aquí (evita duplicados).
-      // Solo mostramos retroalimentación visual temporal hasta que llegue
-      // el mensaje persistido vía 'message' con type === 'TIC'.
+      // Solo mostrar retroalimentación visual temporal
       const chatArea = document.getElementById('chat-area');
       if (chatArea) {
         chatArea.classList.add('tic-vibrate');
         setTimeout(() => chatArea.classList.remove('tic-vibrate'), 600);
       }
     };
+    
     const handleTyping = (userName) => {
       setTypingUser(userName);
       setTimeout(() => setTypingUser(""), 2000);
@@ -228,103 +192,128 @@ export default function ChatScreen({ chat, user, token, onBack }) {
     };
   }, [chat?._id, socket]);
 
-  // Polling para actualizar mensajes si no hay WebSocket
+  // Polling para actualizar mensajes si no hay WebSocket (optimizado)
   useEffect(() => {
-    if (!chat?._id) return;
-    let interval;
-    if (socketError) {
-      interval = setInterval(() => {
-        getChatMessages(chat._id)
-          .then(data => {
-            let msgs = Array.isArray(data) ? data : (Array.isArray(data.messages) ? data.messages : []);
-                    setMessages(msgs.map(msg => {
-              const senderId = msg.user?._id || msg.user?.id || msg.user;
-              const type = msg.type || 'TEXT';
-              const baseMsg = {
-                id: msg._id,
-                from: senderId,
-                time: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-              };
-                      if (type === 'IMAGE') {
-                const imgUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/imagenes/${msg.message}`;
-                return { ...baseMsg, image: imgUrl };
-                      } else if (type === 'AUDIO') {
-                const audioUrl = msg.message?.startsWith('http') ? msg.message : `${API_URL}/audios/${msg.message}`;
-                return { ...baseMsg, audio: audioUrl };
-                      } else if (type === 'TIC') {
-                        return { ...baseMsg, tic: true };
-              } else {
-                return { ...baseMsg, text: msg.message };
-              }
-            }));
-          })
-          .catch(() => { });
-      }, 3000);
-    }
-    return () => interval && clearInterval(interval);
+    if (!chat?._id || !socketError) return;
+    
+    const interval = setInterval(() => {
+      getChatMessages(chat._id)
+        .then(data => {
+          const msgs = extractMessagesFromResponse(data);
+          setMessages(normalizeMessages(msgs));
+        })
+        .catch(() => { });
+    }, 3000);
+    
+    return () => clearInterval(interval);
   }, [chat?._id, socketError]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Enviar texto
-  const handleSend = async (text) => {
+  // Enviar texto con Optimistic UI
+  const handleSend = useCallback(async (text) => {
     if (!text.trim()) return;
     if (!chat?._id) {
       alert('Error: el chat seleccionado no tiene un ID válido. No se puede enviar el mensaje.');
       return;
     }
-    setLoading(true);
+    
+    // Crear mensaje optimista para mostrar inmediatamente
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticMsg = {
+      id: optimisticId,
+      text: text.trim(),
+      from: user?._id || user?.id,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      pending: true, // Marcador para indicar que está pendiente
+    };
+    
+    // Agregar mensaje optimista inmediatamente
+    setMessages(prev => [...prev, optimisticMsg]);
+    
     try {
-      await sendMessage(chat._id, text); // Ya no agrego el mensaje localmente
+      await sendMessage(chat._id, text);
+      // El mensaje real llegará por WebSocket y reemplazará el optimista
+      // Removemos el optimista cuando el socket confirme (se detecta por duplicado en addMessageIfNotExists)
     } catch (e) {
-      // Puedes agregar feedback visual de error aquí
       console.error('Error al enviar mensaje:', e);
+      // Marcar como fallido o remover el mensaje optimista
+      setMessages(prev => prev.map(m => 
+        m.id === optimisticId 
+          ? { ...m, pending: false, failed: true } 
+          : m
+      ));
     }
-    setLoading(false);
-  };
+  }, [chat?._id, user?._id, user?.id]);
 
-  // Enviar imagen
-  const handleSendImage = async (file) => {
+  // Enviar imagen con Optimistic UI
+  const handleSendImage = useCallback(async (file) => {
+    if (!chat?._id) return;
+    
+    // Crear preview optimista de la imagen
+    const optimisticId = `optimistic-img-${Date.now()}`;
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      const optimisticMsg = {
+        id: optimisticId,
+        image: e.target.result, // Base64 preview
+        from: user?._id || user?.id,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        pending: true,
+      };
+      
+      setMessages(prev => [...prev, optimisticMsg]);
+      
+      try {
+        await sendImage(chat._id, file);
+      } catch (err) {
+        console.error('Error al enviar imagen:', err);
+        setMessages(prev => prev.map(m => 
+          m.id === optimisticId 
+            ? { ...m, pending: false, failed: true } 
+            : m
+        ));
+      }
+    };
+    
+    reader.readAsDataURL(file);
+  }, [chat?._id, user?._id, user?.id]);
+
+  // Enviar audio (optimizado con useCallback)
+  const handleSendAudio = useCallback(async (audioBlob) => {
     if (!chat?._id) return;
     setLoading(true);
     try {
-      await sendImage(chat._id, file); // El mensaje aparecerá cuando llegue por WebSocket
-    } catch (e) {
-      console.error('Error al enviar imagen:', e);
-      // Aquí puedes mostrar feedback visual de error
-    }
-    setLoading(false);
-  };
-
-  // Enviar audio
-  const handleSendAudio = async (audioBlob) => {
-    if (!chat?._id) return;
-    setLoading(true);
-    try {
-      await sendAudio(chat._id, audioBlob); // El mensaje aparecerá cuando llegue por WebSocket
+      await sendAudio(chat._id, audioBlob);
     } catch (e) {
       console.error('Error al enviar audio:', e);
-      // Aquí puedes mostrar feedback visual de error
     }
     setLoading(false);
-  };
+  }, [chat?._id]);
 
-  // Enviar TIC (zumbido, solo UI por ahora)
-  const handleSendTic = () => {
-    // Reproducir sonido y animación localmente, pero NO crear placeholder en historial.
+  // Enviar TIC (optimizado con useCallback)
+  const handleSendTic = useCallback(() => {
     ticAudioRef.current?.play();
     const chatArea = document.getElementById('chat-area');
     if (chatArea) {
       chatArea.classList.add('tic-vibrate');
       setTimeout(() => chatArea.classList.remove('tic-vibrate'), 600);
     }
-    // Emitir TIC al backend para que lo reciba el receptor (y persista)
     if (socket && chat?._id) {
       socket.emit("tic", { chatId: chat._id, userId: user?._id });
     }
-  };
+  }, [socket, chat?._id, user?._id]);
+
+  // Handler para typing (optimizado con useCallback)
+  const handleTyping = useCallback(() => {
+    if (socket && chat?._id && user) {
+      const nombre = user.firstName || user.email || "Usuario";
+      socket.emit("typing", { roomId: chat._id, user: nombre });
+    }
+  }, [socket, chat?._id, user]);
 
   // Efecto de vibración y onda global al recibir un Tic
   useEffect(() => {
@@ -558,10 +547,8 @@ export default function ChatScreen({ chat, user, token, onBack }) {
       >
         <TransitionGroup>
           {messages.map((msg, idx) => {
-            // Normalizar IDs a string
-            const normalizeId = id => (id ? String(id).trim() : '');
-            // Obtener el ID del usuario desde el JWT token (no del localStorage compartido)
-            const tokenUserId = getUserIdFromToken();
+            // Obtener el ID del usuario desde el JWT token (usa utilidad importada)
+            const tokenUserId = getMyUserId();
             const myId = normalizeId(tokenUserId || user?._id || user?.id);
             const msgFrom = normalizeId(msg.from);
             const isMine = myId && msgFrom && myId === msgFrom;
@@ -599,16 +586,24 @@ export default function ChatScreen({ chat, user, token, onBack }) {
             const timeStyleMine = { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginLeft: 8, whiteSpace: 'nowrap' };
             const timeStyleOther = { fontSize: 11, color: '#8696a6', marginLeft: 8, whiteSpace: 'nowrap' };
 
+            // Estilos adicionales para mensajes pendientes o fallidos
+            const pendingStyle = msg.pending ? { opacity: 0.7 } : {};
+            const failedStyle = msg.failed ? { border: '2px solid #e74c3c', opacity: 0.8 } : {};
+
             if (msg.image) {
               content = (
                 <div style={{ 
                   ...bubbleBase, 
                   ...(isMine ? bubbleStyleMine : bubbleStyleOther),
+                  ...pendingStyle,
+                  ...failedStyle,
                   padding: 4,
                   background: isMine ? 'linear-gradient(135deg, #3a8dde 0%, #5a9fe8 100%)' : '#fff',
                 }}>
                   <ChatImage src={msg.image} isMine={isMine} />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 6px 2px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '4px 6px 2px', gap: 6 }}>
+                    {msg.pending && <span style={{ fontSize: 10, opacity: 0.7 }}>Enviando...</span>}
+                    {msg.failed && <span style={{ fontSize: 10, color: '#e74c3c' }}>⚠️ Error</span>}
                     <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
                   </div>
                 </div>
@@ -618,6 +613,8 @@ export default function ChatScreen({ chat, user, token, onBack }) {
                 <div style={{ 
                   ...bubbleBase, 
                   ...(isMine ? bubbleStyleMine : bubbleStyleOther),
+                  ...pendingStyle,
+                  ...failedStyle,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
@@ -645,10 +642,19 @@ export default function ChatScreen({ chat, user, token, onBack }) {
               );
             } else if (msg.text) {
               content = (
-                <div style={{ ...bubbleBase, ...(isMine ? bubbleStyleMine : bubbleStyleOther) }}>
+                <div style={{ 
+                  ...bubbleBase, 
+                  ...(isMine ? bubbleStyleMine : bubbleStyleOther),
+                  ...pendingStyle,
+                  ...failedStyle,
+                }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
                     <span style={{ flex: 1, minWidth: 0 }}>{msg.text}</span>
-                    <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {msg.pending && <span style={{ fontSize: 10, opacity: 0.7 }}>⏳</span>}
+                      {msg.failed && <span style={{ fontSize: 10 }}>⚠️</span>}
+                      <span style={isMine ? timeStyleMine : timeStyleOther}>{msg.time}</span>
+                    </span>
                   </div>
                 </div>
               );
@@ -745,12 +751,7 @@ export default function ChatScreen({ chat, user, token, onBack }) {
           onSendImage={handleSendImage}
           onSendAudio={handleSendAudio}
           onSendTic={handleSendTic}
-          onTyping={() => {
-            if (socket && chat?._id && user) {
-              const nombre = user.firstName || user.email || "Usuario";
-              socket.emit("typing", { roomId: chat._id, user: nombre });
-            }
-          }}
+          onTyping={handleTyping}
           loading={loading}
           user={user}
         />

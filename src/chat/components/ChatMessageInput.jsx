@@ -1,7 +1,16 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback, memo } from "react";
 import { FaPaperPlane, FaMicrophone, FaImage, FaBolt } from "react-icons/fa";
 
-export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onSendTic, loading, onTyping }) {
+// Hook para debounce de callbacks
+function useDebouncedCallback(callback, delay) {
+  const timer = useRef();
+  return useCallback((...args) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => callback(...args), delay);
+  }, [callback, delay]);
+}
+
+const ChatMessageInput = memo(function ChatMessageInput({ onSend, onSendImage, onSendAudio, onSendTic, loading, onTyping }) {
   const [input, setInput] = useState("");
   const fileInputRef = useRef();
   const inputRef = useRef();
@@ -9,8 +18,13 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
   const mediaRecorderRef = useRef();
   const audioChunksRef = useRef([]);
 
+  // Debounce para el evento typing (evita spam al servidor)
+  const debouncedTyping = useDebouncedCallback(() => {
+    if (onTyping) onTyping();
+  }, 500);
+
   // Enviar texto
-  const handleSend = e => {
+  const handleSend = useCallback((e) => {
     e.preventDefault();
     if (input.trim()) {
       onSend(input);
@@ -19,7 +33,7 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
         if (inputRef.current) inputRef.current.focus();
       }, 80);
     }
-  };
+  }, [input, onSend]);
 
   // Enfocar input al montar el componente
   useEffect(() => {
@@ -34,14 +48,14 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
   }, [input]);
 
   // Enviar imagen
-  const handleImage = e => {
+  const handleImage = useCallback((e) => {
     const file = e.target.files[0];
     if (file) onSendImage(file);
     fileInputRef.current.value = "";
-  };
+  }, [onSendImage]);
 
   // Grabar audio
-  const handleRecord = async () => {
+  const handleRecord = useCallback(async () => {
     if (recording) {
       mediaRecorderRef.current.stop();
       setRecording(false);
@@ -59,12 +73,18 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
     };
     mediaRecorder.start();
     setRecording(true);
-  };
+  }, [recording, onSendAudio]);
 
   // Enviar TICS
-  const handleTic = () => {
+  const handleTic = useCallback(() => {
     onSendTic();
-  };
+  }, [onSendTic]);
+
+  // Manejar cambio de input con debounce en typing
+  const handleInputChange = useCallback((e) => {
+    setInput(e.target.value);
+    debouncedTyping();
+  }, [debouncedTyping]);
 
   return (
     <form
@@ -156,10 +176,7 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
         ref={inputRef}
         type="text"
         value={input}
-        onChange={e => {
-          setInput(e.target.value);
-          if (onTyping) onTyping();
-        }}
+        onChange={handleInputChange}
         placeholder="Escribe un mensaje..."
         style={{
           flex: 1,
@@ -202,4 +219,6 @@ export default function ChatMessageInput({ onSend, onSendImage, onSendAudio, onS
       </button>
     </form>
   );
-}
+});
+
+export default ChatMessageInput;

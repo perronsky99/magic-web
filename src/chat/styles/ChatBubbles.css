@@ -1,0 +1,337 @@
+/**
+ * Estilos optimizados para las burbujas de mensajes del chat
+ * Extraídos de los estilos inline para mejor rendimiento
+ */
+
+/* === Estilos base de burbujas === */
+.msg-bubble-base {
+  padding: 10px 14px;
+  max-width: 70%;
+  min-width: 60px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+  word-break: break-word;
+  position: relative;
+}
+
+/* Burbuja de mensaje propio */
+.msg-bubble-mine {
+  background: linear-gradient(135deg, #3a8dde 0%, #5a9fe8 100%);
+  color: #fff;
+  border-radius: 18px 18px 4px 18px;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+/* Burbuja de mensaje del otro usuario */
+.msg-bubble-other {
+  background: #fff;
+  color: #1a1a2e;
+  border-radius: 18px 18px 18px 4px;
+  margin-right: auto;
+  margin-left: 12px;
+  border: 1px solid #e0e4ea;
+}
+
+/* Timestamp en mensaje propio */
+.msg-time-mine {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* Timestamp en mensaje del otro */
+.msg-time-other {
+  font-size: 11px;
+  color: #8696a6;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* === Burbuja especial para TIC === */
+.msg-bubble-tic {
+  background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%);
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: ticShake 0.6s;
+}
+
+/* === Burbuja para mensaje no soportado === */
+.msg-bubble-unsupported {
+  background: #ffeded;
+  color: #c0392b;
+  border: 1px solid #e57373;
+}
+
+/* === Contenedor de mensaje === */
+.msg-container {
+  display: flex;
+  width: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.msg-container-mine {
+  justify-content: flex-end;
+}
+
+.msg-container-other {
+  justify-content: flex-start;
+}
+
+/* === Animaciones === */
+@keyframes ticShake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+
+.tic-vibrate {
+  animation: ticShake 0.6s;
+}
+
+@keyframes ticShakeGlobal {
+  10%, 90% { transform: translate(-2px, 0); }
+  20%, 80% { transform: translate(4px, 0); }
+  30%, 50%, 70% { transform: translate(-12px, 0); }
+  40%, 60% { transform: translate(12px, 0); }
+}
+
+.tic-vibrate-global {
+  animation: ticShakeGlobal 0.7s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes ticFlash {
+  0% { box-shadow: 0 0 0 0 #ffe06688; }
+  40% { box-shadow: 0 0 32px 12px #ffe066cc; }
+  100% { box-shadow: 0 0 0 0 #ffe06600; }
+}
+
+.tic-flash {
+  animation: ticFlash 0.7s;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === Transiciones para mensajes (react-transition-group) === */
+.msg-bubble-enter {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.msg-bubble-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 320ms ease-out, transform 320ms ease-out;
+}
+
+.msg-bubble-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.msg-bubble-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 200ms ease-in, transform 200ms ease-in;
+}
+
+/* === Área de mensajes === */
+.chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 36px 0 22px 0;
+  background: linear-gradient(120deg, #fafdff 60%, #e3eaf2 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.2s;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* === Input bar === */
+.chat-input-bar {
+  background: rgba(255, 255, 255, 0.92);
+  border-top: 1.5px solid #e3eaf2;
+  box-shadow: 0 -2px 12px rgba(58, 141, 222, 0.04);
+  padding: 14px 18px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* === Header sticky === */
+.chat-header-sticky {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 32px 16px 22px;
+  border-bottom: 1.5px solid #e3eaf2;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 16px rgba(58, 141, 222, 0.04);
+  z-index: 2;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* === Chat screen glass effect === */
+.chat-screen-glass {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: linear-gradient(120deg, #fafdff 60%, #e3eaf2 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px 0 rgba(58, 141, 222, 0.13);
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* === Typing indicator === */
+.typing-indicator {
+  color: #7a8ca3;
+  font-size: 15px;
+  font-weight: 500;
+  margin-left: 36px;
+  margin-bottom: 10px;
+  font-style: italic;
+  transition: opacity 0.2s;
+}
+
+/* === Image loading spinner === */
+.image-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3a8dde;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.image-loading-spinner-mine {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+}
+
+/* === Avatar styles === */
+.chat-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 12px rgba(58, 141, 222, 0.13);
+  border: 2.5px solid #e3eaf2;
+  background: #fff;
+}
+
+.chat-avatar-placeholder {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #e3eaf2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3a8dde;
+  font-weight: 700;
+  font-size: 28px;
+  box-shadow: 0 2px 12px rgba(58, 141, 222, 0.13);
+}
+
+/* === Back button === */
+.chat-back-button {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #3a8dde;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-left: -4px;
+  border-radius: 8px;
+  padding: 4px;
+  transition: background 0.15s;
+}
+
+.chat-back-button:hover {
+  background: rgba(58, 141, 222, 0.1);
+}
+
+/* === User state indicator === */
+.user-state-indicator {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.user-state-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* === Estados de mensajes optimistas === */
+.msg-bubble-pending {
+  opacity: 0.7;
+  position: relative;
+}
+
+.msg-bubble-pending::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.msg-bubble-failed {
+  opacity: 0.8;
+  border: 2px solid #e74c3c !important;
+}
+
+.msg-bubble-failed::after {
+  content: '⚠️';
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  font-size: 12px;
+}
+
+/* Indicador de reenvío en mensaje fallido */
+.msg-retry-button {
+  background: rgba(231, 76, 60, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s;
+}
+
+.msg-retry-button:hover {
+  background: rgba(231, 76, 60, 1);
+}

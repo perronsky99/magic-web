@@ -6,13 +6,14 @@ import defaultGroupAvatar from '../../assets/user.png';
 import "./GroupsScreen.css";
 
 function getAvatarUrl(avatar, type = 'avatar') {
-  if (!avatar) return type === 'group' ? defaultGroupAvatar : defaultAvatar;
+  if (!avatar || typeof avatar !== 'string' || avatar === 'null' || avatar === 'undefined') {
+    return type === 'group' ? defaultGroupAvatar : defaultAvatar;
+  }
   if (avatar.startsWith('http')) return avatar;
   if (avatar.startsWith('data:image')) return avatar;
-  // If avatar is an absolute path from server (starts with /), return full URL
   if (avatar.startsWith('/')) return `${API_URL}${avatar}`;
-  // If stored path contains uploads or other segments, join with API_URL
   if (avatar.includes('uploads')) return `${API_URL}/${avatar.replace(/^\/+/, '')}`;
+  // Si la imagen es solo el nombre (sin carpeta), busca en /api/group/
   const folder = type === 'group' ? 'group' : 'avatar';
   const cleanAvatar = avatar.replace(/^(avatar|group)\/?/, '');
   return `${API_URL}/api/${folder}/${cleanAvatar}`;
@@ -294,6 +295,7 @@ export default function GroupsScreen({ user, token, onSelectGroup, onBack, hideH
                   src={getAvatarUrl(group.image, 'group')} 
                   alt={group.name} 
                   className="group-avatar"
+                  onError={e => { e.target.onerror = null; e.target.src = defaultGroupAvatar; }}
                 />
                 <div className="group-info">
                   <span className="group-name">{group.name}</span>

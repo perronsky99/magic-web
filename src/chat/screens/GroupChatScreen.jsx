@@ -127,37 +127,42 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
       .finally(() => setLoading(false));
   }, [groupId]);
 
-  // Sockets: unirse al room del grupo y escuchar mensajes
+  // Sockets: unirse al room del grupo y escuchar mensajes (usar eventos genéricos del servidor)
   useEffect(() => {
     if (!groupId || !socket) return;
-    
-    // Unirse al room del grupo
-    socket.emit("join_group", groupId);
-    
-    // Escuchar mensajes nuevos
-    const handleGroupMessage = (msg) => {
-      console.debug('[GroupChatScreen] group_message received:', msg);
+
+    // Unirse al room del grupo usando el evento genérico 'join'
+    try {
+      socket.emit("join", groupId);
+    } catch (e) {
+      console.warn('[GroupChatScreen] Error emitiendo join:', e);
+    }
+
+    // Escuchar mensajes nuevos (el servidor emite 'message' para grupos)
+    const handleMessage = (msg) => {
+      console.debug('[GroupChatScreen] message received:', msg);
       const newMsg = normalizeGroupMessage(msg);
-      if (newMsg) {
-        setMessages(prev => {
-          // Evitar duplicados
-          if (prev.some(m => m.id === newMsg.id)) return prev;
-          // Remover mensaje optimista si existe
-          const filtered = prev.filter(m => !m.pending || m.text !== newMsg.text);
-          return [...filtered, newMsg];
-        });
-        
-        // Sonido si no es mío
-        if (newMsg.from !== myUserId && ticAudioRef.current) {
-          ticAudioRef.current.currentTime = 0;
-          ticAudioRef.current.play().catch(() => {});
-        }
+      if (!newMsg) return;
+      setMessages(prev => {
+        // Evitar duplicados
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        // Remover mensaje optimista si existe (comparando texto)
+        const filtered = prev.filter(m => !(m.pending && m.text === newMsg.text));
+        return [...filtered, newMsg];
+      });
+
+      // Sonido si no es mío
+      if (newMsg.from !== myUserId && ticAudioRef.current) {
+        ticAudioRef.current.currentTime = 0;
+        ticAudioRef.current.play().catch(() => {});
       }
     };
-    
-    // Escuchar typing
-    const handleTyping = ({ userId, userName }) => {
-      if (userId !== myUserId) {
+
+    // Escuchar typing (el servidor reemite 'typing' a la sala)
+    const handleTyping = (user) => {
+      const userId = user?.userId || user?.id || user?.user_id;
+      const userName = user?.userName || user?.name || user?.firstName || user?.username || 'Usuario';
+      if (userId && userId !== myUserId) {
         setTypingUsers(prev => {
           if (prev.some(u => u.userId === userId)) return prev;
           return [...prev, { userId, userName }];
@@ -167,14 +172,14 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
         }, 2000);
       }
     };
-    
-    socket.on("group_message", handleGroupMessage);
-    socket.on("group_typing", handleTyping);
-    
+
+    socket.on("message", handleMessage);
+    socket.on("typing", handleTyping);
+
     return () => {
-      socket.emit("leave_group", groupId);
-      socket.off("group_message", handleGroupMessage);
-      socket.off("group_typing", handleTyping);
+      try { socket.emit("leave", groupId); } catch (e) { /* noop */ }
+      socket.off("message", handleMessage);
+      socket.off("typing", handleTyping);
     };
   }, [groupId, socket, myUserId]);
 
@@ -228,12 +233,13 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
     }
   }, [groupId]);
 
-  // Typing
+  // Typing: emitir evento estándar 'typing' con { roomId, user }
   const handleTyping = useCallback(() => {
     if (socket && groupId) {
-      socket.emit("group_typing", { groupId, userId: myUserId, userName: user?.firstName });
+      const payload = { roomId: groupId, user: { userId: myUserId, userName: user?.firstName || user?.username } };
+      try { socket.emit("typing", payload); } catch (e) { console.warn('typing emit error', e); }
     }
-  }, [socket, groupId, myUserId, user?.firstName]);
+  }, [socket, groupId, myUserId, user?.firstName, user?.username]);
 
   // Salir del grupo
   const handleExitGroup = async () => {
@@ -379,10 +385,11 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
       {/* Input */}
       <div className="group-chat-input-area">
         <ChatMessageInput
-          onSendText={handleSendText}
+          onSend={handleSendText}
           onSendImage={handleSendImage}
           onSendAudio={handleSendAudio}
           onTyping={handleTyping}
+          loading={loading || !socket}
           chatId={groupId}
         />
       </div>

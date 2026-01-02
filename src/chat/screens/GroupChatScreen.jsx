@@ -53,6 +53,7 @@ function normalizeGroupMessage(msg) {
     text: msg.message || msg.text || '',
     image: msg.image,
     audio: msg.audio,
+    type: msg.type || msg.messageType || 'TEXT',
     from: msg.user?._id || msg.user?.id || msg.user_id || msg.from,
     fromUser: msg.user || null,
     time: formatTime(msg.createdAt || msg.created_at || new Date()),
@@ -150,12 +151,12 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
         const filtered = prev.filter(m => !(m.pending && m.text === newMsg.text));
         return [...filtered, newMsg];
       });
-
-      // Sonido si no es mío
-      if (newMsg.from !== myUserId && ticAudioRef.current) {
-        ticAudioRef.current.currentTime = 0;
-        ticAudioRef.current.play().catch(() => {});
-      }
+    
+        // Sonido SOLO si es TIC y no es mío
+        if ((newMsg.type === 'TIC' || newMsg.tic) && newMsg.from !== myUserId && ticAudioRef.current) {
+          ticAudioRef.current.currentTime = 0;
+          ticAudioRef.current.play().catch(() => {});
+        }
     };
 
     // Escuchar typing (el servidor reemite 'typing' a la sala)
@@ -182,6 +183,16 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
       socket.off("typing", handleTyping);
     };
   }, [groupId, socket, myUserId]);
+
+  // Enviar TIC al grupo
+  const handleSendTic = useCallback(() => {
+    if (!socket || !groupId || !myUserId) return;
+    try {
+      socket.emit('tic', { groupId, userId: myUserId });
+    } catch (e) {
+      console.warn('[GroupChatScreen] error emitting tic', e);
+    }
+  }, [socket, groupId, myUserId]);
 
   // Scroll al final cuando hay nuevos mensajes
   useEffect(() => {
@@ -389,6 +400,7 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
           onSendImage={handleSendImage}
           onSendAudio={handleSendAudio}
           onTyping={handleTyping}
+          onSendTic={handleSendTic}
           loading={loading || !socket}
           chatId={groupId}
         />

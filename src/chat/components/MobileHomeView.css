@@ -1,0 +1,442 @@
+/* ====================================
+   MOBILE HOME VIEW - MSN Style
+   ==================================== */
+
+.mobile-home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf1 100%);
+  font-family: 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+  position: relative;
+  padding-bottom: 70px;
+}
+
+/* === Header === */
+.mobile-home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #4a5568 0%, #5a6a7d 100%);
+  color: #fff;
+  gap: 12px;
+}
+
+.mobile-header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.mobile-back-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-url-bar {
+  flex: 1;
+  background: #fff;
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.mobile-menu-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* === Dropdown Menu === */
+.mobile-dropdown-menu {
+  position: absolute;
+  top: 60px;
+  right: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 200px;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mobile-dropdown-menu button:last-child {
+  border-bottom: none;
+}
+
+.mobile-dropdown-menu button:hover {
+  background: #f5f7fa;
+}
+
+.mobile-dropdown-menu button.logout-btn {
+  color: #e74c3c;
+}
+
+.mobile-dropdown-menu button svg {
+  font-size: 18px;
+  color: #3a8dde;
+}
+
+.mobile-dropdown-menu button.logout-btn svg {
+  color: #e74c3c;
+}
+
+/* === Profile Section === */
+.mobile-profile-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 20px 20px;
+  background: #fff;
+  border-bottom: 1px solid #e3e8ef;
+}
+
+.mobile-avatar-container {
+  position: relative;
+}
+
+.mobile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e3e8ef;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e3e8ef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: #b0b8c9;
+}
+
+.mobile-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-welcome {
+  font-size: 13px;
+  color: #8696a6;
+  font-weight: 500;
+}
+
+.mobile-username {
+  font-size: 20px;
+  font-weight: 700;
+  color: #23263a;
+}
+
+.mobile-edit-profile {
+  font-size: 12px;
+  color: #3a8dde;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.mobile-edit-profile:hover {
+  color: #2a6db8;
+}
+
+/* === States Row (MSN Style) === */
+.mobile-states-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px 12px;
+  background: #fff;
+  border-bottom: 1px solid #e3e8ef;
+  gap: 4px;
+}
+
+.mobile-state-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: all 0.2s;
+  min-width: 60px;
+}
+
+.mobile-state-btn:hover {
+  background: rgba(58, 141, 222, 0.08);
+}
+
+.mobile-state-btn.active {
+  background: rgba(58, 141, 222, 0.12);
+}
+
+.mobile-state-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-state-btn.active .mobile-state-indicator {
+  transform: scale(1.1);
+  box-shadow: 0 2px 12px var(--state-color);
+}
+
+.mobile-state-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #5a6a7d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-state-btn.active .mobile-state-label {
+  color: var(--state-color);
+}
+
+/* === Options List === */
+.mobile-options-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  margin-top: 12px;
+}
+
+.mobile-option-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: #fff;
+  border: none;
+  border-bottom: 1px solid #e3e8ef;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.mobile-option-item:hover {
+  background: #f8fafc;
+}
+
+.mobile-option-item:active {
+  background: #f0f4f8;
+}
+
+.mobile-option-item.support-item {
+  background: linear-gradient(90deg, #e8f4ff 0%, #fff 100%);
+  border-left: 4px solid #3a8dde;
+}
+
+.mobile-option-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e3eaf2 0%, #f5f7fa 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #3a8dde;
+}
+
+.mobile-option-icon.support-icon {
+  background: linear-gradient(135deg, #3a8dde 0%, #6a9cff 100%);
+  color: #fff;
+}
+
+.support-bot,
+.footer-bot {
+  font-size: 24px;
+}
+
+.mobile-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-option-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #23263a;
+  letter-spacing: 0.5px;
+}
+
+.mobile-option-subtitle {
+  font-size: 13px;
+  color: #8696a6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-icon {
+  font-size: 14px;
+}
+
+/* === Footer Bar === */
+.mobile-footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #3a8dde 0%, #2a6db8 100%);
+  color: #fff;
+  z-index: 50;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-footer-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.footer-subtitle {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.footer-menu-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.footer-menu-btn span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.footer-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 380px) {
+  .mobile-states-row {
+    padding: 12px 8px;
+  }
+  
+  .mobile-state-btn {
+    padding: 6px 8px;
+    min-width: 50px;
+  }
+  
+  .mobile-state-label {
+    font-size: 8px;
+  }
+  
+  .mobile-state-indicator {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* === Animaciones === */
+@keyframes pulseOnline {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(58, 205, 125, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(58, 205, 125, 0);
+  }
+}
+
+.mobile-state-btn.active .mobile-state-indicator[style*="rgb(58, 205, 125)"],
+.mobile-state-btn.active .mobile-state-indicator[style*="#3ac47d"] {
+  animation: pulseOnline 2s ease-in-out infinite;
+}

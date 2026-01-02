@@ -11,6 +11,24 @@ import { FaUserFriends, FaComments, FaUserCircle } from "react-icons/fa";
 import { SocketProvider, useSocket } from "./SocketContext";
 import { API_URL } from './api';
 import defaultAvatar from '../assets/user.png';
+// Mobile views
+import MobileHomeView from "./components/MobileHomeView";
+import MobileChatView from "./components/MobileChatView";
+
+// Hook para detectar si es móvil
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth <= breakpoint : false
+  );
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [breakpoint]);
+  
+  return isMobile;
+}
 
 function getAvatarUrl(avatar) {
   if (!avatar) return defaultAvatar;
@@ -42,7 +60,8 @@ function StateEmitter({ userId, userState }) {
 }
 
 export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
-  const [section, setSection] = useState("chats"); // chats | groups | profile | chat | groupchat
+  const isMobile = useIsMobile(768);
+  const [section, setSection] = useState(() => isMobile ? "home" : "chats"); // home (mobile) | chats | groups | profile | chat | groupchat
   const [selectedChat, setSelectedChat] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   // Estado de usuario MSN
@@ -50,6 +69,9 @@ export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
   useEffect(() => { localStorage.setItem('magic2k_user_state', userState); }, [userState]);
   // Nickname/mensaje de estado MSN
   const [userStatusMsg, setUserStatusMsg] = useState(() => localStorage.getItem('magic2k_user_status_msg') || '');
+  // Contador de usuarios online
+  const [onlineCount, setOnlineCount] = useState(0);
+  
   useEffect(() => {
     localStorage.setItem('magic2k_user_status_msg', userStatusMsg);
     // Sincronizar con backend
@@ -58,11 +80,119 @@ export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
     }
   }, [userStatusMsg]);
 
+  // Escuchar cambios en usuarios online para el contador
+  useEffect(() => {
+    const handleUsersUpdated = (e) => {
+      setOnlineCount(e.detail?.length || 0);
+    };
+    window.addEventListener('magic2k_users_updated', handleUsersUpdated);
+    // Inicializar
+    setOnlineCount(window.magic2k_onlineUsers?.length || 0);
+    return () => window.removeEventListener('magic2k_users_updated', handleUsersUpdated);
+  }, []);
+
   if (!token) {
     return null; // No mostrar nada si no hay token (el login lo maneja el modal externo)
   }
 
-  // Sidebar MSN style
+  // Handler para navegación móvil
+  const handleMobileNavigate = (screen) => {
+    setSection(screen);
+  };
+
+  // === VISTA MÓVIL ===
+  if (isMobile) {
+    return (
+      <SocketProvider user={user} token={token}>
+        <StateEmitter userId={user?._id} userState={userState} />
+        
+        {/* Home móvil (menú principal) */}
+        {section === "home" && (
+          <MobileHomeView
+            user={user}
+            userState={userState}
+            setUserState={setUserState}
+            onNavigate={handleMobileNavigate}
+            onLogout={onLogout}
+            onlineCount={onlineCount}
+          />
+        )}
+        
+        {/* Lista de chats móvil */}
+        {section === "chats" && !selectedChat && (
+          <div className="mobile-screen-wrapper">
+            <header className="mobile-simple-header">
+              <button className="mobile-header-back" onClick={() => setSection("home")}>←</button>
+              <span className="mobile-header-title">Chats</span>
+              <span className="mobile-header-count">{onlineCount} online</span>
+            </header>
+            <ChatsScreen 
+              user={user} 
+              token={token}
+              onSelectChat={chat => { setSelectedChat(chat); setSection("chat"); }}
+              onSelectGroup={group => { setSelectedGroup(group); setSection("groupchat"); }}
+              onProfile={() => setSection("profile")} 
+            />
+          </div>
+        )}
+        
+        {/* Chat individual móvil */}
+        {section === "chat" && selectedChat && (
+          <MobileChatView
+            chat={selectedChat}
+            user={user}
+            onBack={() => { setSelectedChat(null); setSection("chats"); }}
+          />
+        )}
+        
+        {/* Grupos móvil */}
+        {section === "groups" && !selectedGroup && (
+          <div className="mobile-screen-wrapper">
+            <header className="mobile-simple-header">
+              <button className="mobile-header-back" onClick={() => setSection("home")}>←</button>
+              <span className="mobile-header-title">Grupos</span>
+              <span className="mobile-header-count"></span>
+            </header>
+            <GroupsScreen 
+              user={user} 
+              token={token}
+              onSelectGroup={group => { setSelectedGroup(group); setSection("groupchat"); }}
+              onBack={() => setSection("home")} 
+            />
+          </div>
+        )}
+        
+        {/* Chat grupal móvil */}
+        {section === "groupchat" && selectedGroup && (
+          <GroupChatScreen 
+            group={selectedGroup} 
+            user={user} 
+            token={token} 
+            onBack={() => { setSelectedGroup(null); setSection("groups"); }} 
+          />
+        )}
+        
+        {/* Perfil móvil */}
+        {section === "profile" && (
+          <div className="mobile-screen-wrapper">
+            <header className="mobile-simple-header">
+              <button className="mobile-header-back" onClick={() => setSection("home")}>←</button>
+              <span className="mobile-header-title">Mi Perfil</span>
+              <span className="mobile-header-count"></span>
+            </header>
+            <ProfileScreen
+              user={user}
+              token={token}
+              onBack={() => setSection("home")}
+              onUserUpdate={onUserUpdate}
+            />
+          </div>
+        )}
+      </SocketProvider>
+    );
+  }
+
+  // === VISTA DESKTOP (original) ===
   return (
     <SocketProvider user={user} token={token}>
       <StateEmitter userId={user?._id} userState={userState} />

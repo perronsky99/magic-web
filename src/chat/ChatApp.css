@@ -78,3 +78,76 @@
 @keyframes star-move4{0%{transform:translate(0,0);}20%{transform:translate(4px,5px);}40%{transform:translate(-2px,-6px);}60%{transform:translate(3px,4px);}80%{transform:translate(-4px,-2px);}100%{transform:translate(0,0);}}
 @keyframes star-move5{0%{transform:translate(0,0);}20%{transform:translate(-2px,3px);}40%{transform:translate(3px,-2px);}60%{transform:translate(-1px,4px);}80%{transform:translate(2px,1px);}100%{transform:translate(0,0);}}
 @keyframes star-move6{0%{transform:translate(0,0);}20%{transform:translate(2px,-2px);}40%{transform:translate(-3px,3px);}60%{transform:translate(1px,-4px);}80%{transform:translate(-2px,1px);}100%{transform:translate(0,0);}}
+
+/* ====================================
+   MOBILE RESPONSIVE STYLES
+   ==================================== */
+
+.mobile-screen-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+.mobile-simple-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #3a8dde 0%, #2a6db8 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mobile-header-back {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-header-back:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mobile-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.mobile-header-count {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* Hide desktop elements on mobile */
+@media (max-width: 768px) {
+  .chat-app-main {
+    display: none !important;
+  }
+  
+  .chat-app-sidebar {
+    display: none !important;
+  }
+}
+
+/* Ensure desktop layout on larger screens */
+@media (min-width: 769px) {
+  .mobile-screen-wrapper,
+  .mobile-home-container,
+  .mobile-chat-container {
+    display: none !important;
+  }
+}

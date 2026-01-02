@@ -4,16 +4,20 @@ import { getGroupMessages, sendGroupMessage, sendGroupImage, sendGroupAudio, exi
 import { useSocket } from "../SocketContext";
 import ChatMessageInput from "../components/ChatMessageInput";
 import defaultAvatar from '../../assets/user.png';
-import defaultGroupAvatar from '../../assets/user.png';
+import defaultGroupAvatar from '../../assets/group.svg';
 import ticSound from "../../assets/magic2k_message_pip.wav";
 import "./GroupChatScreen.css";
 
 function getAvatarUrl(avatar, type = 'avatar') {
-  if (!avatar) return type === 'group' ? defaultGroupAvatar : defaultAvatar;
+  if (!avatar || typeof avatar !== 'string' || avatar === 'null' || avatar === 'undefined') {
+    return type === 'group' ? defaultGroupAvatar : defaultAvatar;
+  }
   if (avatar.startsWith('http')) return avatar;
   if (avatar.startsWith('data:image')) return avatar;
+  if (avatar.startsWith('/')) return `${API_URL}${avatar}`;
+  if (avatar.includes('uploads')) return `${API_URL}/${avatar.replace(/^\/+/, '')}`;
   const folder = type === 'group' ? 'group' : 'avatar';
-  const cleanAvatar = avatar.replace(/^(avatar|group)\//, '');
+  const cleanAvatar = avatar.replace(/^(avatar|group)\/?/, '');
   return `${API_URL}/api/${folder}/${cleanAvatar}`;
 }
 
@@ -289,6 +293,7 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
           src={getAvatarUrl(group?.image, 'group')} 
           alt={group?.name} 
           className="group-chat-avatar"
+          onError={e => { e.target.onerror = null; e.target.src = defaultGroupAvatar; }}
         />
         <div className="group-chat-info" onClick={() => setShowInfo(true)} style={{ cursor: 'pointer' }}>
           <div className="group-chat-name">{group?.name}</div>

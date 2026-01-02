@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FaUsers, FaPlus, FaTimes, FaCamera, FaCheck, FaComments } from "react-icons/fa";
 import { getGroups, createGroup, getUsers, getGroupLastMessage, API_URL } from "../api";
 import defaultAvatar from '../../assets/user.png';
-import defaultGroupAvatar from '../../assets/user.png';
+import defaultGroupAvatar from '../../assets/group.svg';
 import "./GroupsScreen.css";
 
 function getAvatarUrl(avatar, type = 'avatar') {

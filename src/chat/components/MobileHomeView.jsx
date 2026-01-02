@@ -40,21 +40,7 @@ export default function MobileHomeView({
 
   return (
     <div className="mobile-home-container">
-      {/* Header con menú hamburguesa */}
-      <header className="mobile-home-header">
-        <div className="mobile-header-logo">
-          <img src={logo} alt="Magic2k" className="mobile-logo-img" />
-        </div>
-        <span className="mobile-header-title">Magic2k</span>
-        <button 
-          className="mobile-menu-btn"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <FaTimes /> : <FaBars />}
-        </button>
-      </header>
-
-      {/* Menú desplegable */}
+      {/* Menú desplegable (se activa desde el footer) */}
       {menuOpen && (
         <div className="mobile-dropdown-menu">
           <button onClick={() => { onNavigate('profile'); setMenuOpen(false); }}>

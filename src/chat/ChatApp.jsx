@@ -49,12 +49,18 @@ const USER_STATES = [
 // Componente que emite cambios de estado al socket
 function StateEmitter({ userId, userState }) {
   const socket = useSocket();
+  const lastEmittedRef = React.useRef(null);
   
   useEffect(() => {
-    if (socket && userId && userState) {
-      socket.emit("change_state", { userId, state: userState });
+    // Solo emitir si el socket está conectado y hay un cambio real
+    if (socket?.connected && userId && userState) {
+      const key = `${userId}-${userState}`;
+      if (lastEmittedRef.current !== key) {
+        lastEmittedRef.current = key;
+        socket.emit("change_state", { userId, state: userState });
+      }
     }
-  }, [socket, userId, userState]);
+  }, [socket?.connected, userId, userState]);
   
   return null;
 }

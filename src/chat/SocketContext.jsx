@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { getSocket } from "./socket";
 
 // Contexto separado para el socket (referencia estable)
@@ -123,8 +123,9 @@ export function SocketProvider({ user, token, children }) {
         };
     }, [user?._id, token]);
 
-    // Memoizar el valor del socket para evitar re-renders innecesarios
-    const socketValue = useMemo(() => socketRef.current, [socketReady]);
+    // El valor del socket es la referencia actual - socketReady solo indica si está conectado
+    // Usamos un objeto wrapper para forzar re-render cuando el socket cambia
+    const socketValue = socketRef.current;
 
     return (
         <SocketContext.Provider value={socketValue}>

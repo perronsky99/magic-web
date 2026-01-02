@@ -70,7 +70,7 @@ const USER_STATES = [
 // UI para lista de chats y creación de nuevo chat
 //import { FaPlus } from "react-icons/fa";
 
-export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile }) {
+export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, onProfile, hideHeader = false }) {
     // Toast de notificación
     const [toast, setToast] = useState({ open: false, message: '', sender: '', avatar: '' });
     const toastTimeout = useRef();
@@ -322,7 +322,8 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
   ), [chats, user, onSelectChat, onlineUsers]);
 
   return (
-    <div style={{ position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fafdff' }}>
+    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', background: '#fafdff' }}>
+      {!hideHeader && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px 10px 18px', borderBottom: '1.5px solid #e3eaf2', background: '#fafdff', zIndex: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <h2 style={{ fontWeight: 800, fontSize: 22, color: '#7a8ca3', margin: 0 }}>Chats</h2>
@@ -352,7 +353,8 @@ export default function ChatsScreen({ user, token, onSelectChat, onSelectGroup, 
         </div>
         <button onClick={() => setShowModal(true)} style={{ background: 'linear-gradient(90deg,#3a8dde 60%,#6a9cff 100%)', color: '#fff', border: 'none', borderRadius: 12, padding: '8px 18px', fontWeight: 700, fontSize: 15, boxShadow: '0 1px 8px #3a8dde22', cursor: 'pointer', transition: 'background .2s' }}>+ Nuevo chat</button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 0 24px 0', margin: 0, display: 'flex', flexDirection: 'column', background: '#fafdff', zIndex: 1 }}>
+      )}
+      <div style={{ flex: 1, overflowY: 'auto', padding: hideHeader ? '12px' : '0 0 24px 0', margin: 0, display: 'flex', flexDirection: 'column', background: '#fafdff', zIndex: 1 }}>
         {loadingChats ? (
           <div style={{ width: '100%', maxWidth: 480, margin: '48px auto 0 auto' }}>
             {[1, 2, 3].map(i => (

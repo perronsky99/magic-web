@@ -45,9 +45,7 @@ export default function MobileHomeView({
         <div className="mobile-header-logo">
           <img src={logo} alt="Magic2k" className="mobile-logo-img" />
         </div>
-        <div className="mobile-url-bar">
-          magic2k.com
-        </div>
+        <span className="mobile-header-title">Magic2k</span>
         <button 
           className="mobile-menu-btn"
           onClick={() => setMenuOpen(!menuOpen)}

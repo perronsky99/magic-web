@@ -185,7 +185,7 @@ function CreateGroupModal({ onClose, onCreated, currentUserId }) {
 }
 
 // Pantalla principal de grupos
-export default function GroupsScreen({ user, token, onSelectGroup, onBack }) {
+export default function GroupsScreen({ user, token, onSelectGroup, onBack, hideHeader = false }) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -232,17 +232,28 @@ export default function GroupsScreen({ user, token, onSelectGroup, onBack }) {
 
   return (
     <div className="groups-screen">
-      {/* Header */}
-      <header className="groups-header">
-        <div className="groups-header-title">
-          <FaUsers /> Grupos
-        </div>
-        <div className="groups-header-actions">
+      {/* Header - hide when parent provides its own */}
+      {!hideHeader && (
+        <header className="groups-header">
+          <div className="groups-header-title">
+            <FaUsers /> Grupos
+          </div>
+          <div className="groups-header-actions">
+            <button className="groups-create-btn" onClick={() => setShowCreateModal(true)}>
+              <FaPlus /> Crear grupo
+            </button>
+          </div>
+        </header>
+      )}
+
+      {/* Floating create button when header is hidden */}
+      {hideHeader && (
+        <div className="groups-floating-create">
           <button className="groups-create-btn" onClick={() => setShowCreateModal(true)}>
             <FaPlus /> Crear grupo
           </button>
         </div>
-      </header>
+      )}
 
       {/* Lista de grupos */}
       <div className="groups-list">

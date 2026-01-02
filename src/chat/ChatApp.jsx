@@ -137,7 +137,8 @@ export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
               token={token}
               onSelectChat={chat => { setSelectedChat(chat); setSection("chat"); }}
               onSelectGroup={group => { setSelectedGroup(group); setSection("groupchat"); }}
-              onProfile={() => setSection("profile")} 
+              onProfile={() => setSection("profile")}
+              hideHeader={true}
             />
           </div>
         )}
@@ -163,7 +164,8 @@ export default function ChatApp({ token, user, onLogout, onUserUpdate }) {
               user={user} 
               token={token}
               onSelectGroup={group => { setSelectedGroup(group); setSection("groupchat"); }}
-              onBack={() => setSection("home")} 
+              onBack={() => setSection("home")}
+              hideHeader={true}
             />
           </div>
         )}

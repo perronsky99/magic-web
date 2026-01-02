@@ -139,26 +139,30 @@ function CreateGroupModal({ onClose, onCreated, currentUserId }) {
                   No hay usuarios disponibles
                 </div>
               ) : (
-                users.map(u => (
-                  <div 
-                    key={u._id || u.id}
-                    className={`participant-item ${selectedUsers.includes(u._id || u.id) ? 'selected' : ''}`}
-                    onClick={() => toggleUser(u._id || u.id)}
-                  >
-                    <img 
-                      src={getAvatarUrl(u.avatar)} 
-                      alt={u.firstName} 
-                      className="participant-avatar"
-                    />
-                    <span className="participant-name">
-                      {u.firstName} {u.lastName}
-                      {u.nickname && <span style={{ color: '#8696a6' }}> ({u.nickname})</span>}
-                    </span>
-                    <div className="participant-check">
-                      {selectedUsers.includes(u._id || u.id) && <FaCheck />}
+                users.map(u => {
+                  const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+                  const display = name || u.nickname || u.email || u.username || 'Usuario';
+                  return (
+                    <div 
+                      key={u._id || u.id}
+                      className={`participant-item ${selectedUsers.includes(u._id || u.id) ? 'selected' : ''}`}
+                      onClick={() => toggleUser(u._id || u.id)}
+                    >
+                      <img 
+                        src={getAvatarUrl(u.avatar)} 
+                        alt={display} 
+                        className="participant-avatar"
+                      />
+                      <span className="participant-name">
+                        {display}
+                        {u.nickname && name && <span style={{ color: '#8696a6' }}> ({u.nickname})</span>}
+                      </span>
+                      <div className="participant-check">
+                        {selectedUsers.includes(u._id || u.id) && <FaCheck />}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

@@ -226,4 +226,157 @@ export async function getStatusMsg(userId) {
   return res.json();
 }
 
+// =============================================
+// ======= GRUPOS (GROUP) =====================
+// =============================================
+
+// Crear un grupo
+export async function createGroup({ name, participants, image }) {
+  const formData = new FormData();
+  formData.append('name', name);
+  if (participants && participants.length > 0) {
+    formData.append('participants', JSON.stringify(participants));
+  }
+  if (image) {
+    formData.append('image', image);
+  }
+  const res = await fetchWithAuth(`${API_URL}/api/group`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo crear el grupo');
+  return res.json();
+}
+
+// Obtener todos los grupos del usuario
+export async function getGroups() {
+  const res = await fetchWithAuth(`${API_URL}/api/group`);
+  if (!res.ok) throw new Error('No se pudieron obtener los grupos');
+  return res.json();
+}
+
+// Obtener info de un grupo específico
+export async function getGroup(groupId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/${groupId}`);
+  if (!res.ok) throw new Error('No se pudo obtener el grupo');
+  return res.json();
+}
+
+// Actualizar un grupo (nombre, imagen)
+export async function updateGroup(groupId, { name, image }) {
+  const formData = new FormData();
+  if (name) formData.append('name', name);
+  if (image) formData.append('image', image);
+  const res = await fetchWithAuth(`${API_URL}/api/group/${groupId}`, {
+    method: 'PATCH',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo actualizar el grupo');
+  return res.json();
+}
+
+// Salir de un grupo
+export async function exitGroup(groupId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/exit/${groupId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('No se pudo salir del grupo');
+  return res.json();
+}
+
+// Agregar participantes a un grupo
+export async function addParticipantsToGroup(groupId, participants) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/add_participants/${groupId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participants })
+  });
+  if (!res.ok) throw new Error('No se pudieron agregar los participantes');
+  return res.json();
+}
+
+// Banear/quitar un participante de un grupo
+export async function removeParticipantFromGroup(groupId, participantId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/remove_participant/${groupId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participantId })
+  });
+  if (!res.ok) throw new Error('No se pudo quitar al participante');
+  return res.json();
+}
+
+// Eliminar un grupo
+export async function deleteGroup(groupId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/${groupId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('No se pudo eliminar el grupo');
+  return res.json();
+}
+
+// =============================================
+// ======= MENSAJES GRUPALES ==================
+// =============================================
+
+// Obtener mensajes de un grupo
+export async function getGroupMessages(groupId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/message/${groupId}`);
+  if (!res.ok) throw new Error('No se pudieron obtener los mensajes del grupo');
+  return res.json();
+}
+
+// Enviar mensaje de texto a un grupo
+export async function sendGroupMessage(groupId, message) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/message`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ group_id: groupId, message })
+  });
+  if (!res.ok) throw new Error('No se pudo enviar el mensaje');
+  return res.json();
+}
+
+// Enviar imagen a un grupo
+export async function sendGroupImage(groupId, file) {
+  const formData = new FormData();
+  formData.append('group_id', groupId);
+  formData.append('image', file);
+  const res = await fetchWithAuth(`${API_URL}/api/group/message/image`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo enviar la imagen');
+  return res.json();
+}
+
+// Enviar audio a un grupo
+export async function sendGroupAudio(groupId, file) {
+  const formData = new FormData();
+  formData.append('group_id', groupId);
+  formData.append('audio', file);
+  const res = await fetchWithAuth(`${API_URL}/api/group/message/audio`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('No se pudo enviar el audio');
+  return res.json();
+}
+
+// Obtener el último mensaje de un grupo
+export async function getGroupLastMessage(groupId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/message/last/${groupId}`);
+  if (!res.ok) throw new Error('No se pudo obtener el último mensaje');
+  return res.json();
+}
+
+// Obtener el total de mensajes de un grupo
+export async function getGroupTotalMessages(groupId) {
+  const res = await fetchWithAuth(`${API_URL}/api/group/message/total/${groupId}`);
+  if (!res.ok) throw new Error('No se pudo obtener el total de mensajes');
+  return res.json();
+}
+
 // Puedes agregar aquí funciones para audio, imágenes, etc.

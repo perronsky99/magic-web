@@ -353,21 +353,30 @@ export default function GroupChatScreen({ group, user, token, onBack }) {
                 )}
                 <div className="group-message-content">
                   {!isMine && <span className="group-message-sender">{senderName}</span>}
-                  <div className="group-message-bubble">
-                    {item.image && (
-                      <GroupChatImage 
-                        src={item.image.startsWith('http') ? item.image : `${API_URL}/${item.image}`}
-                        isMine={isMine}
-                      />
+                  <div className={`group-message-bubble ${item.type === 'TIC' || item.tic ? 'tic-bubble' : ''}`}>
+                    { (item.type === 'TIC' || item.tic) ? (
+                      <>
+                        <span className="tic-icon">⚡</span>
+                        <span className="tic-text">¡TIC!</span>
+                      </>
+                    ) : (
+                      <>
+                        {item.image && (
+                          <GroupChatImage 
+                            src={item.image.startsWith('http') ? item.image : `${API_URL}/${item.image}`}
+                            isMine={isMine}
+                          />
+                        )}
+                        {item.audio && (
+                          <audio 
+                            controls 
+                            className="group-message-audio"
+                            src={item.audio.startsWith('http') ? item.audio : `${API_URL}/${item.audio}`}
+                          />
+                        )}
+                        {item.text && <span>{item.text}</span>}
+                      </>
                     )}
-                    {item.audio && (
-                      <audio 
-                        controls 
-                        className="group-message-audio"
-                        src={item.audio.startsWith('http') ? item.audio : `${API_URL}/${item.audio}`}
-                      />
-                    )}
-                    {item.text && <span>{item.text}</span>}
                   </div>
                   <span className="group-message-time">
                     {item.time}

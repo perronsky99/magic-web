@@ -180,6 +180,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .mobile-welcome {
@@ -192,6 +194,92 @@
   font-size: 20px;
   font-weight: 700;
   color: #23263a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === Status/Alias Editable === */
+.mobile-status-row {
+  margin-top: 4px;
+}
+
+.mobile-status-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.mobile-status-text {
+  font-size: 13px;
+  color: #3a8dde;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.mobile-status-edit-icon {
+  font-size: 10px;
+  color: #8696a6;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.mobile-status-display:hover .mobile-status-edit-icon {
+  opacity: 1;
+  color: #3a8dde;
+}
+
+.mobile-status-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-status-input {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid #3a8dde;
+  background: transparent;
+  font-size: 13px;
+  color: #23263a;
+  padding: 4px 0;
+  outline: none;
+  font-weight: 500;
+  max-width: 180px;
+}
+
+.mobile-status-input::placeholder {
+  color: #b0b8c9;
+  font-weight: 400;
+}
+
+.mobile-status-save {
+  background: #3a8dde;
+  border: none;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.mobile-status-save:hover {
+  background: #2a6db8;
+}
+
+.mobile-status-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .mobile-edit-profile {
